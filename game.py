@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Module provides game itself
 """
@@ -8,65 +7,28 @@ import os
 import pygame
 from pygame.math import Vector2
 
+from pygame_text_helper import create_text
+
 x = 40
 y = 30
 os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x, y)
-
-
-def make_font(fonts, size):
-    available = pygame.font.get_fonts()
-    choices = map(lambda font: font.lower().replace(' ', ''), fonts)
-    for choice in choices:
-        if choice in available:
-            return pygame.font.SysFont(choice, size)
-    return pygame.font.Font(None, size)
-
-
-_cached_fonts = {}
-
-
-def get_font(font_preferences, size):
-    global _cached_fonts
-    key = str(font_preferences) + '|' + str(size)
-    font = _cached_fonts.get(key, None)
-    if font is None:
-        font = make_font(font_preferences, size)
-        _cached_fonts[key] = font
-    return font
-
-
-_cached_text = {}
-
-
-def create_text(text, fonts, size, color):
-    global _cached_text
-    key = '|'.join(map(str, (fonts, size, color, text)))
-    image = _cached_text.get(key, None)
-    if image is None:
-        font = get_font(fonts, size)
-        image = font.render(text, True, color)
-        _cached_text[key] = image
-    return image
-
 
 font_preferences = ["Papyrus", "Comic Sans MS"]
 
 
 class Game:
-    def __init__(self, size, rocket, image):
+    def __init__(self, size, rocket):
         self.max_x, self.max_y = size
-        self.gravity = 10
-        self.air_res = 0.8
+        self.gravity = 3
+        self.air_res = 0.9
         self.pos = None
         self.acc = None
         self.rocket = rocket
-        self.image = image
         self.clock = pygame.time.Clock()
         self.done = False
-        self.not_lost_game = False
+        self.lost_game = True
         self.move = 0.5
         self.tick_time = 60
-
 
     def init_pos(self):
         self.pos = Vector2(self.max_x / 2, self.max_y / 2)
@@ -145,21 +107,20 @@ class Game:
             screen.fill((0, 0, 0))
             self.draw_rocket(screen)
             self.show_speed(screen)
-            self.is_game_lost()
+            self.game_over(screen)
             pygame.display.flip()
             self.clock.tick(self.tick_time)
-            self.game_over(screen)
 
     def is_game_lost(self):
         if not 0 < self.rocket.x < self.max_x - self.rocket.width:
-            self.not_lost_game = True
+            self.lost_game = False
         if not 0 < self.rocket.y < self.max_y - self.rocket.height:
-            self.not_lost_game = True
+            self.lost_game = False
 
     def draw_rocket(self, screen):
         self.rocket = pygame.Rect(self.pos.x, self.pos.y, 60, 60)
         pygame.draw.rect(screen, (0, 128, 255), self.rocket)
-        screen.blit(self.image, self.rocket)
+        # screen.blit(self.image, self.rocket)
 
     def change_rocket_position(self):
         self.pos += self.acc
@@ -186,7 +147,8 @@ class Game:
         screen.blit(text, (x_pos, y_pos))
 
     def game_over(self, screen):
-        while self.not_lost_game:
+        self.is_game_lost()
+        while not self.lost_game:
             game_over_text = create_text("Game Over", font_preferences, 110, (255, 0, 0))
             continue_text = create_text("Press space to restart game", font_preferences, 35, (255, 0, 0))
             back_to_menu = create_text("Press escape to back to menu", font_preferences, 35, (255, 0, 0))
@@ -202,17 +164,16 @@ class Game:
                     exit()
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
-                        self.not_lost_game = False
+                        self.lost_game = True
                         self.init_pos()
                         self.reset_acc()
                     elif event.key == pygame.K_ESCAPE:
-                        self.not_lost_game = False
+                        self.lost_game = True
                         self.done = True
 
 
 if __name__ == '__main__':
     size = (1400, 1000)
     rocket = pygame.Rect(size[0] / 2, size[1] / 2, 60, 60)
-    image = pygame.image.load(r'D:\userdata\raczak\Desktop\rocketpng.png')
-    game = Game(size, rocket, image)
+    game = Game(size, rocket)
     game.run()
