@@ -8,8 +8,11 @@ import os
 import pygame
 from pygame.math import Vector2
 
-x = 40
-y = 30
+from rocket import load_sprites
+
+x = 500
+y = 40
+black = (255, 255, 255)
 os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x, y)
 
 
@@ -53,20 +56,23 @@ font_preferences = ["Papyrus", "Comic Sans MS"]
 
 
 class Game:
-    def __init__(self, size, rocket, image):
+    def __init__(self, size, rocket, sprites):
+        self.sprites = sprites
+        self.sprites_len = len(sprites[0])
+        self.image = sprites[0][self.sprites_len // 2]
         self.max_x, self.max_y = size
         self.gravity = 10
         self.air_res = 0.8
         self.pos = None
         self.acc = None
         self.rocket = rocket
-        self.image = image
         self.clock = pygame.time.Clock()
         self.done = False
         self.not_lost_game = False
         self.move = 0.5
         self.tick_time = 60
-
+        self.pause = False
+        self.is_force = False
 
     def init_pos(self):
         self.pos = Vector2(self.max_x / 2, self.max_y / 2)
@@ -80,6 +86,7 @@ class Game:
         text_len = len(texts)
         option = 0
         while not_chosen:
+            self.clock.tick(self.tick_time)
             for event in pygame.event.get():
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_DOWN:
@@ -101,7 +108,7 @@ class Game:
                     self.done = True
                     not_chosen = False
 
-            screen.fill((0, 0, 0))
+            screen.fill(black)
             for i, text in enumerate(texts):
                 if i == option:
                     color = (0, 155, 0)
@@ -114,7 +121,7 @@ class Game:
                 screen.blit(new_text, (x_pos, y_pos))
 
             pygame.display.flip()
-            self.clock.tick(12)
+            self.clock.tick(1)
 
     def option_menu(self):
         pass
@@ -142,7 +149,7 @@ class Game:
             self.add_gravity()
             self.add_air_resistance()
             self.change_rocket_position()
-            screen.fill((0, 0, 0))
+            screen.fill(black)
             self.draw_rocket(screen)
             self.show_speed(screen)
             self.is_game_lost()
@@ -157,28 +164,44 @@ class Game:
             self.not_lost_game = True
 
     def draw_rocket(self, screen):
-        self.rocket = pygame.Rect(self.pos.x, self.pos.y, 60, 60)
-        pygame.draw.rect(screen, (0, 128, 255), self.rocket)
+        n = 24
+        sprite_num = int(round(self.acc.x * n / self.sprites_len)) + self.sprites_len // 2
+        if sprite_num >= self.sprites_len - 1:
+            sprite_num = self.sprites_len - 1
+        elif sprite_num < 0:
+            sprite_num = 0
+        self.image = self.sprites[self.is_force][sprite_num]
+        self.rocket = pygame.Rect(self.pos.x, self.pos.y, self.image.get_width(), self.image.get_height())
+        pygame.draw.rect(screen, black, self.rocket)
         screen.blit(self.image, self.rocket)
 
     def change_rocket_position(self):
-        self.pos += self.acc
+        if not self.pause:
+            self.pos += self.acc
 
     def add_air_resistance(self):
-        self.acc *= (1 - self.air_res / self.tick_time)
+        if not self.pause:
+            self.acc *= (1 - self.air_res / self.tick_time)
 
     def add_gravity(self):
-        self.acc.y += self.gravity / self.tick_time
+        if not self.pause:
+            self.acc.y += self.gravity / self.tick_time
 
     def change_acc(self, pressed):
+        self.pause = False
+        self.is_force = False
         if pressed[pygame.K_UP]:
             self.acc.y -= self.move
+            self.is_force = True
         if pressed[pygame.K_DOWN]:
-            self.acc.y += self.move
+            if self.acc.y < 0:
+                self.acc.y = min(0, self.acc.y + self.move // 4)
         if pressed[pygame.K_LEFT]:
             self.acc.x -= self.move / 2
         if pressed[pygame.K_RIGHT]:
             self.acc.x += self.move / 2
+        if pressed[pygame.K_SPACE]:
+            self.pause = True
 
     def show_text(self, screen, text, x_ratio, y_ratio):
         x_pos = x_ratio * (self.max_x - text.get_width())
@@ -208,11 +231,14 @@ class Game:
                     elif event.key == pygame.K_ESCAPE:
                         self.not_lost_game = False
                         self.done = True
+            self.clock.tick(self.tick_time)
 
 
 if __name__ == '__main__':
     size = (1400, 1000)
     rocket = pygame.Rect(size[0] / 2, size[1] / 2, 60, 60)
-    image = pygame.image.load(r'D:\userdata\raczak\Desktop\rocketpng.png')
-    game = Game(size, rocket, image)
+    sprites_no_acc = load_sprites(r'C:\Users\Student221639\Desktop\sprites\no_acc')
+    sprites_acc = load_sprites(r'C:\Users\Student221639\Desktop\sprites\acc')
+    sprites = [sprites_no_acc, sprites_acc]
+    game = Game(size, rocket, sprites)
     game.run()
