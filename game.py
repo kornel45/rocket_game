@@ -237,8 +237,8 @@ class Game:
 if __name__ == '__main__':
     size = (1400, 1000)
     rocket = pygame.Rect(size[0] / 2, size[1] / 2, 60, 60)
-    sprites_no_acc = load_sprites(r'C:\Users\Student221639\Desktop\sprites\no_acc')
-    sprites_acc = load_sprites(r'C:\Users\Student221639\Desktop\sprites\acc')
+    sprites_no_acc = load_sprites(r'C:\path\to\folder\no_acc')
+    sprites_acc = load_sprites(r'C:\path\to\folder\acc')
     sprites = [sprites_no_acc, sprites_acc]
     game = Game(size, rocket, sprites)
     game.run()
