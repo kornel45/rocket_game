@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Module provides game itself
+You can download needed sprites from here: https://www.mediafire.com/file/cb365fxtu8ivt2u/sprites.7z/file
 """
 import math
 import os
