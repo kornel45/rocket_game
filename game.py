@@ -13,7 +13,7 @@ from rocket import load_sprites
 
 x = 500
 y = 40
-black = (255, 255, 255)
+black = (0, 0, 0)
 os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x, y)
 
 
@@ -83,7 +83,7 @@ class Game:
 
     def main_menu(self, screen):
         not_chosen = True
-        texts = ['Start game', 'Options', 'Exit']
+        texts = ['Start game', 'Options', 'About', 'Exit']
         text_len = len(texts)
         option = 0
         while not_chosen:
@@ -98,8 +98,10 @@ class Game:
                         if option == 0:
                             self.play_game(screen)
                         elif option == 1:
-                            self.option_menu()
+                            self.option_menu(screen)
                         elif option == 2:
+                            self.about(screen)
+                        elif option == 3:
                             not_chosen = False
                             self.done = True
                     elif event.key == pygame.K_ESCAPE:
@@ -120,12 +122,15 @@ class Game:
                 x_pos = (self.max_x - new_text.get_width()) // 2
                 y_pos = (1 + i) * (self.max_y - new_text.get_height()) // (2 + text_len) + font_size
                 screen.blit(new_text, (x_pos, y_pos))
-
             pygame.display.flip()
-            self.clock.tick(1)
 
-    def option_menu(self):
+    def option_menu(self, screen):
         pass
+        # in_option_menu = True
+        # while in_option_menu:
+        #     for event in pygame.event.get():
+        #         if event.type in (pygame.QUIT, pygame.K_ESCAPE):
+        #             in_option_menu = False
 
     def show_speed(self, screen):
         speed = round(math.sqrt(self.acc.x ** 2 + self.acc.y ** 2) / (2 / 173))
@@ -234,12 +239,35 @@ class Game:
                         self.done = True
             self.clock.tick(self.tick_time)
 
+    def about(self, screen):
+        is_about = True
+        texts = ['Authors:', 'Kornel Raczak', 'Pawel Gorecki', 'Lukasz Polakiewicz', 'Press ESC']
+        text_len = len(texts)
+        while is_about:
+            self.clock.tick(self.tick_time)
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    exit()
+                elif event.type == pygame.KEYDOWN:
+                    if event.key in (pygame.K_SPACE, pygame.K_RETURN, pygame.K_ESCAPE):
+                        is_about = False
+
+            screen.fill(black)
+            colors = [(0, 0, 255), (255, 0, 0), (0, 255, 0), (0, 125, 125), (125, 125, 0)]
+            for i, text in enumerate(texts):
+                font_size = 60
+                new_text = create_text(text, font_preferences, font_size, colors[i])
+                x_pos = (self.max_x - new_text.get_width()) // 2
+                y_pos = (1 + i) * (self.max_y - new_text.get_height()) // (2 + text_len) + font_size
+                screen.blit(new_text, (x_pos, y_pos))
+            pygame.display.flip()
+
 
 if __name__ == '__main__':
     size = (1400, 1000)
     rocket = pygame.Rect(size[0] / 2, size[1] / 2, 60, 60)
-    sprites_no_acc = load_sprites(r'C:\path\to\folder\no_acc')
-    sprites_acc = load_sprites(r'C:\path\to\folder\acc')
+    sprites_no_acc = load_sprites(r'C:\Users\Student221639\Desktop\sprites\no_acc')
+    sprites_acc = load_sprites(r'C:\Users\Student221639\Desktop\sprites\acc')
     sprites = [sprites_no_acc, sprites_acc]
     game = Game(size, rocket, sprites)
     game.run()
