@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Module provides functionality of creating text accepted by pygame blit method
-"""
 import pygame
 
 
@@ -17,7 +13,7 @@ def make_font(fonts, size):
 _cached_fonts = {}
 
 
-def get_font(self.font, size):
+def get_font(font_preferences, size):
     global _cached_fonts
     key = str(font_preferences) + '|' + str(size)
     font = _cached_fonts.get(key, None)
@@ -39,5 +35,4 @@ def create_text(text, fonts, size, color):
         image = font.render(text, True, color)
         _cached_text[key] = image
     return image
-
 
