@@ -155,8 +155,8 @@ class Game:
     def option_menu(self,screen):
         not_chosen = True
         option_meteors = ["Meteors: easy", "Meteors: medium", "Meteors: hard", "Meteors: impossible"]
-        options1 = ['raz','dwa','tzy']
-        options2 = ['Kornel','gra','w','pedalskie','gry']
+        options1 = ['Music: Off', 'Music: On']
+        options2 = ['xD','dddd']
         options = [option_meteors, options1, options2]
         self.chooses_len = []
         for option in options:
@@ -269,13 +269,17 @@ class Game:
             pygame.display.flip()
             self.clock.tick(self.tick_time)
             if self.not_lost_game:
-                s = pygame.mixer.Sound('death.wav')
-                s.play()
+                if self.chooses[1]:
+                    s = pygame.mixer.Sound('death.wav')
+                    s.play()
                 self.game_over(screen)
+                self.list_of_meteors = []
             if self.won_game:
-                s = pygame.mixer.Sound('victory.wav')
-                s.play()
+                if self.chooses[1]:
+                    s = pygame.mixer.Sound('victory.wav')
+                    s.play()
                 self.game_won(screen)
+                self.list_of_meteors = []
 
     def prob_of_new_meteor(self):
         liczniki = [0.01, 0.05, 0.1, 0.3]
@@ -292,15 +296,24 @@ class Game:
             screen.blit(self.image, self.meteor)
 
     def add_meteor(self):
-        mid_or_feed = r.random() < 0.8
+        mid_or_feed = r.random() < 0.8 #czy meteor leci z gory
         if(mid_or_feed):
-            x = 0
-            y = r.random() * self.max_y
+            y = 0
+            x = r.random() * self.max_x
+            x_acc = r.random() * 2 - 4
+            y_acc = r.random() * 2 + 1
         else:
-            x = r.random() * self.max_x / 3  # na wysokosci 1/3
-            y = self.max_y * ( r.random() < 1/2) # z lewej albo z prawej
-        x_acc = r.random() * 2
-        y_acc = r.random() * 2
+            #czy z lewej czy z prawej strony
+            if r.random() < 0.5: # z prawej
+                y = r.random() * self.max_y / 3  # na wysokosci 1/3
+                x = self.max_y  # z lewej albo z prawej
+                x_acc = - r.random() * 2
+                y_acc = r.random() * 2 - 1
+            else:
+                y = r.random() * self.max_y / 3  # na wysokosci 1/3
+                x = 0  # z lewej albo z prawej
+                x_acc = r.random() * 2
+                y_acc = r.random() * 2 - 1
         meteor = [x, y, x_acc, y_acc]
         self.list_of_meteors.append(meteor)
 
