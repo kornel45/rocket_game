@@ -314,6 +314,11 @@ class Game:
                 self.won_game = True
             else:
                 self.not_lost_game = True
+        for i in self.list_of_meteors:
+            for j in self.hitbox:
+                radius = 70
+                if ((i[0]+radius) - j[0]) ** 2 + ((i[1]+radius) - j[1]) **2 <= radius ** 2:
+                    self.not_lost_game = True
 
     def meteorits_collision(self):
         pass
@@ -327,6 +332,9 @@ class Game:
             sprite_num = 0
         self.image = self.sprites[self.is_force][sprite_num]
         self.rocket = pygame.Rect(self.pos.x, self.pos.y, self.image.get_width(), self.image.get_height())
+        self.hitbox = [(self.rocket.x + self.rocket.width//2 + math.cos((90-sprite_num + i*45)*math.pi/180) * 15, 
+                        self.rocket.y + self.rocket.height//2 + math.sin((90-sprite_num + i*45)*math.pi/180) * 35)
+                       for i in range(8)]
         pygame.draw.rect(screen, black, self.rocket)
         screen.blit(self.image, self.rocket)
 
