@@ -12,9 +12,9 @@ import numpy
 import pygame
 from pygame.math import Vector2
 
+from meteors import load_sprites_meteors
 from rocket import load_sprites
 from text_styler import create_text
-from meteors import load_sprites_meteors
 
 x = 500
 y = 40
@@ -53,6 +53,7 @@ class Game:
         self.background_color = colors['white']
         self.list_of_meteors = []
         self.main_menu_loop = True
+        self.wind = 0
 
     def init_pos(self):
         self.pos = Vector2(self.max_x / 2, self.max_y / 4)
@@ -140,14 +141,14 @@ class Game:
 
     def option_menu(self, screen):
         not_chosen = True
-        option_meteors = ["Meteors: easy", "Meteors: medium", "Meteors: hard", "Meteors: impossible"]
+        option_meteors = ["Meteors: Easy", "Meteors: Medium", "Meteors: Hard", "Meteors: Impossible"]
         options1 = ['Music: Off', 'Music: On']
         options2 = ['Wind: On', 'Wind: Off']
-        options3 = ['Wind: constant', 'Wind: variable']
+        options3 = ['Wind: Constant', 'Wind: Unstable']
         options = [option_meteors, options1, options2, options3]
-        chooses_len = []
+        game_option_len = []
         for option in options:
-            chooses_len.append(len(option))
+            game_option_len.append(len(option))
         option = 0
         text_len = len(options)
         while not_chosen:
@@ -159,9 +160,9 @@ class Game:
                     if event.key == pygame.K_UP:
                         option = (option - 1) % text_len
                     elif event.key == pygame.K_LEFT:
-                        self.game_option[option] = (self.chooses[option] - 1) % chooses_len[option]
+                        self.game_option[option] = (self.game_option[option] - 1) % game_option_len[option]
                     elif event.key == pygame.K_RIGHT:
-                        self.game_option[option] = (self.chooses[option] + 1) % chooses_len[option]
+                        self.game_option[option] = (self.game_option[option] + 1) % game_option_len[option]
 
                     elif event.key == pygame.K_ESCAPE:
                         not_chosen = False
@@ -169,7 +170,7 @@ class Game:
                     not_chosen = False
                     self.done = True
 
-                    screen.fill(self.background_color)
+            screen.fill(self.background_color)
             for i, opt in enumerate(options):
                 color = (0, 0, 255)
                 font_size = 60
@@ -185,9 +186,9 @@ class Game:
     def show_speed(self, screen):
         speed_x_val = abs(round(self.acc.x / (2 / 173)))
         speed_y_val = abs(round(self.acc.y / (2 / 173)))
-        speed_x = create_text('Horizontal:  {} km/h'.format(speed_x_val), font_preferences, 20, (255, 0, 0))
-        speed_y = create_text('Vertical:  {} km/h'.format(speed_y_val), font_preferences, 20, (255, 0, 0))
-        speed_wind = create_text('Wind:  {} km/h'.format(round(10 * self.wind, 1)), font_preferences, 20, (255, 0, 0))
+        speed_x = create_text('Horizontal:  {} km/h'.format(speed_x_val), self.font, 20, (255, 0, 0))
+        speed_y = create_text('Vertical:  {} km/h'.format(speed_y_val), self.font, 20, (255, 0, 0))
+        speed_wind = create_text('Wind:  {} km/h'.format(round(10 * self.wind, 1)), self.font, 20, (255, 0, 0))
         screen.blit(speed_x, (10, 30))
         screen.blit(speed_y, (10, 10))
         screen.blit(speed_wind, (10, 50))
@@ -281,7 +282,6 @@ class Game:
         return r.random() < liczniki[self.game_option[0]]
 
     def draw_meteors(self, screen):
-        # image_meteor = self.sprites[-1][]
         for i, [x, y, x_acc, y_acc, rotation, rotation_counter, rotation_speed, size] in enumerate(
                 self.list_of_meteors):
             self.list_of_meteors[i][0] += x_acc - self.wind
@@ -291,9 +291,7 @@ class Game:
                 self.list_of_meteors[i][4] = (rotation + 1) % 36
             scale_size = {70: -1, 60: -2, 50: -3, 40: -4, 30: -5}
             image_meteor = self.sprites[scale_size[size]][rotation]
-            # print(x,' ',y)
-            self.meteor = pygame.Rect(x, y, image_meteor.get_width() * size / 70, size / 70 * image_meteor.get_height())
-            pygame.draw.rect(screen, black, self.meteor)
+            self.meteor = pygame.Rect(x, y, image_meteor.get_width(), image_meteor.get_height())
             screen.blit(image_meteor, self.meteor)
 
     def add_meteor(self):
@@ -304,15 +302,14 @@ class Game:
             x_acc = r.random() * 2 - 4
             y_acc = r.random() * 2 + 1
         else:
-            # czy z lewej czy z prawej strony
-            if r.random() < 0.5:  # z prawej
-                y = r.random() * self.max_y / 3  # na wysokosci 1/3
-                x = self.max_x + brzeg  # z lewej albo z prawej
+            if r.random() < 0.5:
+                y = r.random() * self.max_y / 3
+                x = self.max_x + brzeg
                 x_acc = - r.random() * 2
                 y_acc = r.random() * 2 - 1
             else:
-                y = r.random() * self.max_y / 3  # na wysokosci 1/3
-                x = -brzeg  # z lewej albo z prawej
+                y = r.random() * self.max_y / 3
+                x = -brzeg
                 x_acc = r.random() * 2
                 y_acc = r.random() * 2 - 1
         rotation = 0
