@@ -282,16 +282,15 @@ class Game:
         return r.random() < liczniki[self.game_option[0]]
 
     def draw_meteors(self, screen):
-        for i, [x, y, x_acc, y_acc, rotation, rotation_counter, rotation_speed, size] in enumerate(
-                self.list_of_meteors):
-            self.list_of_meteors[i][0] += x_acc - self.wind
-            self.list_of_meteors[i][1] += y_acc
-            self.list_of_meteors[i][5] = (rotation_counter + 1) % rotation_speed
-            if self.list_of_meteors[i][5] == 0:
-                self.list_of_meteors[i][4] = (rotation + 1) % 36
+        for i, meteor in enumerate(self.list_of_meteors):
+            self.list_of_meteors[i].x += meteor.x_acc - self.wind
+            self.list_of_meteors[i].y += meteor.y_acc
+            self.list_of_meteors[i].rotation_counter = (meteor.rotation_counter + 1) % meteor.rotation_speed
+            if self.list_of_meteors[i].rotation_counter == 0:
+                self.list_of_meteors[i].rotation = (meteor.rotation + 1) % 36
             scale_size = {70: -1, 60: -2, 50: -3, 40: -4, 30: -5}
-            image_meteor = self.sprites[scale_size[size]][rotation]
-            self.meteor = pygame.Rect(x, y, image_meteor.get_width(), image_meteor.get_height())
+            image_meteor = self.sprites[scale_size[meteor.size]][meteor.rotation]
+            self.meteor = pygame.Rect(meteor.x, meteor.y, image_meteor.get_width(), image_meteor.get_height())
             screen.blit(image_meteor, self.meteor)
 
     def add_meteor(self):
@@ -316,7 +315,7 @@ class Game:
         rotation_speed = r.randint(1, 3)
         rotation_counter = 0
         size = r.choice([70, 60, 50, 40, 30])
-        meteor = [x, y, x_acc, y_acc, rotation, rotation_counter, rotation_speed, size]
+        meteor = Meteor(x, y, x_acc, y_acc, rotation, rotation_counter, rotation_speed, size)
         self.list_of_meteors.append(meteor)
 
     def is_game_lost(self):
@@ -329,14 +328,13 @@ class Game:
                 self.is_won = True
             else:
                 self.is_lost = True
-        for i in self.list_of_meteors:
-            for j in self.hitbox:
-                radius = 70
-                if ((i[0] + radius) - j[0]) ** 2 + ((i[1] + radius) - j[1]) ** 2 <= radius ** 2:
-                    self.is_lost = True
+        self.meteors_collision()
 
-    def meteorits_collision(self):
-        pass
+    def meteors_collision(self):
+        for meteor in self.list_of_meteors:
+            for x, y in self.hitbox:
+                if ((meteor.x + meteor.size) - x) ** 2 + ((meteor.y + meteor.size) - y) ** 2 <= 0.81 * meteor.size ** 2:
+                    self.is_lost = True
 
     def draw_rocket(self, screen):
         n = 24
@@ -441,6 +439,18 @@ class Game:
             self.clock.tick(self.tick_time)
 
 
+class Meteor:
+    def __init__(self, x, y, x_acc, y_acc, rotation, rotation_counter, rotation_speed, size):
+        self.x = x
+        self.y = y
+        self.x_acc = x_acc
+        self.y_acc = y_acc
+        self.rotation = rotation
+        self.rotation_counter = rotation_counter
+        self.rotation_speed = rotation_speed
+        self.size = size
+
+
 if __name__ == '__main__':
     size = (1400, 1000)
     rocket = pygame.Rect(size[0] / 2, size[1] / 2, 60, 60)
@@ -448,10 +458,10 @@ if __name__ == '__main__':
     sprites_acc = load_sprites(r'acc')
     meteor = pygame.image.load(r'meteors\kometa.png')
     meteors70 = load_sprites_meteors(r'meteors')
-    meteors60 = [pygame.transform.scale(picture, (60, 60)) for picture in meteors70]
-    meteors50 = [pygame.transform.scale(picture, (50, 50)) for picture in meteors70]
-    meteors40 = [pygame.transform.scale(picture, (40, 40)) for picture in meteors70]
-    meteors30 = [pygame.transform.scale(picture, (30, 30)) for picture in meteors70]
+    meteors60 = [pygame.transform.scale(picture, (120, 120)) for picture in meteors70]
+    meteors50 = [pygame.transform.scale(picture, (100, 100)) for picture in meteors70]
+    meteors40 = [pygame.transform.scale(picture, (80, 80)) for picture in meteors70]
+    meteors30 = [pygame.transform.scale(picture, (50, 50)) for picture in meteors70]
     sprites = [sprites_no_acc, sprites_acc, meteors30, meteors40, meteors50, meteors60, meteors70]
     game = Game(size, rocket, sprites)
     game.run()
