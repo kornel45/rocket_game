@@ -270,9 +270,8 @@ class Game:
         for i, [x, y, x_acc, y_acc] in enumerate(self.list_of_meteors):
             self.list_of_meteors[i][0] += x_acc
             self.list_of_meteors[i][1] += y_acc
-            self.meteor = pygame.Rect(x, y, self.image.get_width(), self.image.get_height())
-            pygame.draw.rect(screen, self.background_color, self.meteor)
-            screen.blit(self.image, self.meteor)
+            meteor = pygame.Rect(x, y, self.image.get_width(), self.image.get_height())
+            screen.blit(self.image, meteor)
 
     def add_meteor(self):
         mid_or_feed = r.random() < 0.8  # czy meteor leci z gory
@@ -328,7 +327,6 @@ class Game:
             (self.rocket.x + self.rocket.width // 2 + math.cos((90 - sprite_num + i * 45) * math.pi / 180) * 15,
              self.rocket.y + self.rocket.height // 2 + math.sin((90 - sprite_num + i * 45) * math.pi / 180) * 35)
             for i in range(8)]
-        pygame.draw.rect(screen, self.background_color, self.rocket)
         screen.blit(self.image, self.rocket)
 
     def change_rocket_position(self):
