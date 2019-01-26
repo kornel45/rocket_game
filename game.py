@@ -7,6 +7,8 @@ import math
 import numpy
 import os
 
+import random as r
+
 import pygame
 from pygame.math import Vector2
 
@@ -59,6 +61,7 @@ font_preferences = ["Papyrus", "Comic Sans MS"]
 
 class Game:
     def __init__(self, size, rocket, sprites):
+        self.chooses = [0, 0, 0] # wybory w opcjach, ale uwaga, to lista list
         self.sprites = sprites
         self.sprites_len = len(sprites[0])
         self.image = sprites[0][self.sprites_len // 2]
@@ -149,8 +152,60 @@ class Game:
                 screen.blit(new_text, (x_pos, y_pos))
             pygame.display.flip()
 
-    def option_menu(self):
-        pass
+    def option_menu(self,screen):
+        not_chosen = True
+        option_meteors = ["Meteors: easy", "Meteors: medium", "Meteors: hard", "Meteors: impossible"]
+        options1 = ['raz','dwa','tzy']
+        options2 = ['Kornel','gra','w','pedalskie','gry']
+        options = [option_meteors, options1, options2]
+        self.chooses_len = []
+        for option in options:
+            self.chooses_len.append(len(option))
+        option = 0
+        text_len = len(options)
+        while not_chosen:
+            self.clock.tick(self.tick_time)
+            for event in pygame.event.get():
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_DOWN:
+                        option = (option + 1) % text_len
+                    if event.key == pygame.K_UP:
+                        option = (option - 1) % text_len
+                    elif event.key == pygame.K_LEFT:
+                        self.chooses[option] = (self.chooses[option] - 1) % self.chooses_len[option]
+                    elif event.key == pygame.K_RIGHT:
+                       self. chooses[option] = (self.chooses[option] + 1) % self.chooses_len[option]
+                    elif event.key in (pygame.K_SPACE, pygame.K_RETURN):
+                        if option == 0:
+                            self.play_game(screen)
+                        elif option == 1:
+                            self.option_menu(screen)
+                        elif option == 2:
+                            self.about(screen)
+                        elif option == 3:
+                            not_chosen = False
+                            self.done = True
+                    elif event.key == pygame.K_ESCAPE:
+                        self.done = True
+                        not_chosen = False
+                elif event.type == pygame.QUIT:
+                    self.done = True
+                    not_chosen = False
+
+            screen.fill(black)
+            color = (0, 0, 255)#, (255, 0, 0), (0, 255, 0), (0, 125, 125), (125, 125, 0)]
+            for i, opt in enumerate(options):
+                color = (0, 0, 255)
+                font_size = 60
+                what_to_write = opt[self.chooses[i]]
+                if i == option:
+                    #what_to_write = "-> " + what_to_write
+                    color = (0,255,0)
+                new_text = create_text(what_to_write, font_preferences, font_size, color)
+                x_pos = (self.max_x - new_text.get_width()) // 2
+                y_pos = (1 + i) * (self.max_y - new_text.get_height()) // (2 + text_len) + font_size
+                screen.blit(new_text, (x_pos, y_pos))
+            pygame.display.flip()
 
     def show_speed(self, screen):
         speed_x_val = abs(round(self.acc.x  / (2 / 173)))
@@ -184,11 +239,14 @@ class Game:
         screen = pygame.display.set_mode((self.max_x, self.max_y))
         self.main_menu(screen)
 
+    def reset_meteors(self):
+        self.list_of_meteors = []
+
     def play_game(self, screen):
         self.done = False
         self.init_pos()
         self.reset_acc()
-        
+        self.reset_meteors()
         planet_surface = self.generate_surface(100,5,500)
         #pygame.mixer.music.play()
         while not self.done:
@@ -196,12 +254,15 @@ class Game:
                 if event.type == pygame.QUIT:
                     exit()
             pressed = pygame.key.get_pressed()
+            if self.prob_of_new_meteor():
+                self.add_meteor()
             self.change_acc(pressed)
             self.add_gravity()
             self.add_air_resistance()
             self.change_rocket_position()
             screen.fill(black)
             pygame.draw.lines(screen, 0, 0, planet_surface, 10)
+            self.draw_meteors(screen)
             self.draw_rocket(screen)
             self.show_speed(screen)
             self.is_game_lost()
@@ -216,6 +277,33 @@ class Game:
                 s.play()
                 self.game_won(screen)
 
+    def prob_of_new_meteor(self):
+        liczniki = [0.01, 0.05, 0.1, 0.3]
+        return r.random() < liczniki[self.chooses[0]]
+
+    def draw_meteors(self, screen):
+        self.image = self.sprites[-1]
+        for i, [x, y, x_acc, y_acc] in enumerate(self.list_of_meteors):
+            self.list_of_meteors[i][0] += x_acc
+            self.list_of_meteors[i][1] += y_acc
+            #print(x,' ',y)
+            self.meteor = pygame.Rect(x, y, self.image.get_width(), self.image.get_height())
+            pygame.draw.rect(screen, black, self.meteor)
+            screen.blit(self.image, self.meteor)
+
+    def add_meteor(self):
+        mid_or_feed = r.random() < 0.8
+        if(mid_or_feed):
+            x = 0
+            y = r.random() * self.max_y
+        else:
+            x = r.random() * self.max_x / 3  # na wysokosci 1/3
+            y = self.max_y * ( r.random() < 1/2) # z lewej albo z prawej
+        x_acc = r.random() * 2
+        y_acc = r.random() * 2
+        meteor = [x, y, x_acc, y_acc]
+        self.list_of_meteors.append(meteor)
+
     def is_game_lost(self):
         if not 0 < self.rocket.x < self.max_x - self.rocket.width:
             self.not_lost_game = True
@@ -226,7 +314,10 @@ class Game:
                 self.won_game = True
             else:
                 self.not_lost_game = True
-            
+
+    def meteorits_collision(self):
+        pass
+
     def draw_rocket(self, screen):
         n = 24
         sprite_num = int(round(self.acc.x * n / self.sprites_len)) + self.sprites_len // 2
@@ -329,7 +420,8 @@ if __name__ == '__main__':
     rocket = pygame.Rect(size[0] / 2, size[1] / 2, 60, 60)
     sprites_no_acc = load_sprites(r'no_acc')
     sprites_acc = load_sprites(r'acc')
-    sprites = [sprites_no_acc, sprites_acc]
+    meteor = pygame.image.load(r'meteors\meteor2.png')
+    sprites = [sprites_no_acc, sprites_acc, meteor]
     game = Game(size, rocket, sprites)
     game.run()
     pygame.quit()
