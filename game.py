@@ -11,6 +11,7 @@ from random import shuffle
 import numpy
 import pygame
 from pygame.math import Vector2
+from scipy.interpolate import interp1d
 
 from meteors import load_sprites_meteors
 from rocket import load_sprites
@@ -54,9 +55,12 @@ class Game:
         self.list_of_meteors = []
         self.main_menu_loop = True
         self.wind = 0
+        self.surface = [self.max_y-10] * self.max_x
+        self.landing_site = []
+        self.site_size = 150
 
     def init_pos(self):
-        self.pos = Vector2(self.max_x / 2, self.max_y / 4)
+        self.pos = Vector2(self.start_position, self.surface[self.start_position]-self.rocket.height-10)
 
     def reset_acc(self):
         self.acc = Vector2(0, 0)
@@ -193,24 +197,27 @@ class Game:
         screen.blit(speed_y, (10, 10))
         screen.blit(speed_wind, (10, 50))
 
-    def generate_surface(self, n, surface_length, rng):
-        height = 1000
-        width = 1400
-        surf = []
-        landing_site = [numpy.random.randint(surface_length, n - surface_length), height - numpy.random.randint(0, rng)]
-        self.landing_site = [(landing_site[0] - surface_length) * width // n,
-                             (landing_site[0] + surface_length) * width // n]
-        for i in range(n):
-            if abs(i - landing_site[0]) <= surface_length:
-                surf.append([i * width // n, landing_site[1]])
-            else:
-                surf.append((i * width // n, height - numpy.random.randint(0, rng)))
-        surf.append((width - 1, height))
-        self.surface = [0] * width
-        for i in range(n):
-            for j in range(width // n):
-                self.surface[i * width // n + j] = (surf[i][1] * (width // n - j) + surf[i + 1][1] * j) // (width // n)
-        return surf
+    def generate_surface(self, rng):
+        prepend = 100
+        for i in range(1000):
+            main_terrain = numpy.random.randint(600,800)
+            self.surface += self.generate_main_terrain(main_terrain, rng, self.surface[prepend-1])
+            self.surface += [self.surface[-1]] * self.site_size
+            self.landing_site += [[prepend+self.site_size+main_terrain,prepend+2*self.site_size+main_terrain]]
+        self.start_position = prepend + self.site_size//2 - self.rocket.width//8
+        self.surface = self.surface[(self.max_x-prepend-self.site_size):]
+    
+    def cutscene(self):
+        prepend = 100
+        self.surface = self.surface[(self.landing_site[0][0]-prepend):]
+        self.landing_site = self.landing_site[1:]
+        
+        
+    def generate_main_terrain(self, main_terrain, rng, start):
+        x=numpy.linspace(0, main_terrain,20)
+        y=[self.max_y - numpy.random.randint(10,rng) for i in range(20)]
+        f = interp1d(x, y, kind='cubic')
+        return list(f(range(main_terrain)))
 
     def run(self):
         pygame.init()
@@ -235,10 +242,10 @@ class Game:
 
     def play_game(self, screen):
         self.is_playing_game = True
+        self.generate_surface(300)
         self.init_pos()
         self.reset_acc()
         self.reset_meteors()
-        planet_surface = self.generate_surface(100, 5, 500)
         self.set_wind_on_start()
         while self.is_playing_game:
             for event in pygame.event.get():
@@ -256,7 +263,7 @@ class Game:
             self.add_wind()
             self.change_rocket_position()
             screen.fill(self.background_color)
-            pygame.draw.lines(screen, 0, 0, planet_surface, 10)
+            pygame.draw.lines(screen, 0, 0, [(i,self.surface[i]) for i in range(self.max_x)], 10)
             self.draw_meteors(screen)
             self.draw_rocket(screen)
             self.show_speed(screen)
@@ -324,10 +331,16 @@ class Game:
         if not 0 < self.rocket.y < self.max_y - self.rocket.height:
             self.is_lost = True
         if not self.rocket.y <= self.surface[self.rocket.x] - self.rocket.height:
-            if abs(self.acc.x) + abs(self.acc.y) < 4 and self.landing_site[0] < self.rocket.x < self.landing_site[1]:
+            if abs(self.acc.x) + abs(self.acc.y) < 4 and self.landing_site[0][0] < self.rocket.x < self.landing_site[0][1]:
                 self.is_won = True
             else:
                 self.is_lost = True
+        if (self.start_position - self.site_size//2 < self.rocket.x < self.start_position + self.site_size//2 and 
+                self.rocket.y >= self.surface[self.rocket.x] - self.rocket.height and self.acc.y>0 and
+                abs(self.acc.x)<2 and abs(self.acc.y)<5):
+            self.is_lost = False
+            self.init_pos()
+            self.reset_acc()
         self.meteors_collision()
 
     def meteors_collision(self):
@@ -414,29 +427,10 @@ class Game:
             self.clock.tick(self.tick_time)
 
     def game_won(self, screen):
-        while self.is_won:
-            game_over_text = create_text("You won!", self.font, 110, (128, 128, 0))
-            continue_text = create_text("Press space to restart game", self.font, 35, (128, 128, 0))
-            back_to_menu = create_text("Press escape to back to menu", self.font, 35, (128, 128, 0))
-
-            self.show_text(screen, game_over_text, 1 / 2, 1 / 4)
-            self.show_text(screen, continue_text, 1 / 2, 4 / 11)
-            self.show_text(screen, back_to_menu, 1 / 2, 5 / 11)
-
-            pygame.display.flip()
-
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    exit()
-                elif event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE:
-                        self.is_won = False
-                        self.init_pos()
-                        self.reset_acc()
-                    elif event.key == pygame.K_ESCAPE:
-                        self.is_won = False
-                        self.is_playing_game = False
-            self.clock.tick(self.tick_time)
+        self.cutscene()
+        self.pos = Vector2(self.start_position, self.surface[self.start_position]-self.rocket.height)
+        self.reset_acc()
+        self.is_won = False 
 
 
 class Meteor:
