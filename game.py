@@ -136,12 +136,12 @@ class Game:
             pygame.display.flip()
 
     def change_wind(self):
-        if not self.game_option[3]:
+        if not self.game_option[3] and not self.game_option[2]:
             self.wind += (r.random() - 0.5) / 1000
 
     def set_wind_on_start(self):
-        if self.game_option[2]:
-            self.wind = 0.001  # r.random / 3
+        if not self.game_option[2]:
+            self.wind = (r.random()*2 - 1) / 100
 
     def option_menu(self, screen):
         not_chosen = True
@@ -190,9 +190,14 @@ class Game:
     def show_speed(self, screen):
         speed_x_val = abs(round(self.acc.x / (2 / 173)))
         speed_y_val = abs(round(self.acc.y / (2 / 173)))
+        wind = abs(round(self.wind / (2 / 173), 2))
+        if self.wind > 0:
+            strzalka = ' <-'
+        else:
+            strzalka = ' ->'
         speed_x = create_text('Horizontal:  {} km/h'.format(speed_x_val), self.font, 20, (255, 0, 0))
         speed_y = create_text('Vertical:  {} km/h'.format(speed_y_val), self.font, 20, (255, 0, 0))
-        speed_wind = create_text('Wind:  {} km/h'.format(round(10 * self.wind, 1)), self.font, 20, (255, 0, 0))
+        speed_wind = create_text('Wind:' + strzalka + ' {} km/h'.format(10 * wind), self.font, 20, (255, 0, 0))
         screen.blit(speed_x, (10, 30))
         screen.blit(speed_y, (10, 10))
         screen.blit(speed_wind, (10, 50))
@@ -227,6 +232,9 @@ class Game:
     def reset_meteors(self):
         self.list_of_meteors = []
 
+    def reset_wind(self):
+        self.wind = 0
+
     def pause_game(self, screen):
         game_pause = create_text("Game Pause", self.font, 90, colors['red'])
         pause_menu = True
@@ -246,6 +254,7 @@ class Game:
         self.init_pos()
         self.reset_acc()
         self.reset_meteors()
+        self.reset_wind()
         self.set_wind_on_start()
         while self.is_playing_game:
             for event in pygame.event.get():
@@ -305,11 +314,11 @@ class Game:
         if r.random() < 0.8:
             y = -brzeg
             x = r.random() * self.max_x
-            x_acc = r.random() * 2 - 4
+            x_acc = r.random() * 4 - 2
             y_acc = r.random() * 2 + 1
         else:
             if r.random() < 0.5:
-                y = r.random() * self.max_y / 3
+                y = r.random() * self.max_y / 2
                 x = self.max_x + brzeg
                 x_acc = - r.random() * 2
                 y_acc = r.random() * 2 - 1
@@ -322,7 +331,8 @@ class Game:
         rotation_speed = r.randint(1, 3)
         rotation_counter = 0
         size = r.choice([70, 60, 50, 40, 30])
-        meteor = Meteor(x, y, x_acc, y_acc, rotation, rotation_counter, rotation_speed, size)
+        rotation_direction = r.choice([-1,1])
+        meteor = Meteor(x, y, x_acc, y_acc, rotation, rotation_counter, rotation_speed, rotation_direction, size)
         self.list_of_meteors.append(meteor)
 
     def is_game_lost(self):
@@ -434,7 +444,7 @@ class Game:
 
 
 class Meteor:
-    def __init__(self, x, y, x_acc, y_acc, rotation, rotation_counter, rotation_speed, size):
+    def __init__(self, x, y, x_acc, y_acc, rotation, rotation_counter, rotation_speed,rotation_direction, size):
         self.x = x
         self.y = y
         self.x_acc = x_acc
@@ -442,6 +452,7 @@ class Meteor:
         self.rotation = rotation
         self.rotation_counter = rotation_counter
         self.rotation_speed = rotation_speed
+        self.rotation_direction = rotation_direction
         self.size = size
 
 
@@ -455,7 +466,7 @@ if __name__ == '__main__':
     meteors60 = [pygame.transform.scale(picture, (120, 120)) for picture in meteors70]
     meteors50 = [pygame.transform.scale(picture, (100, 100)) for picture in meteors70]
     meteors40 = [pygame.transform.scale(picture, (80, 80)) for picture in meteors70]
-    meteors30 = [pygame.transform.scale(picture, (50, 50)) for picture in meteors70]
+    meteors30 = [pygame.transform.scale(picture, (60, 60)) for picture in meteors70]
     sprites = [sprites_no_acc, sprites_acc, meteors30, meteors40, meteors50, meteors60, meteors70]
     game = Game(size, rocket, sprites)
     game.run()
