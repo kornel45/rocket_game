@@ -58,6 +58,7 @@ class Game:
         self.surface = [self.max_y-10] * self.max_x
         self.landing_site = []
         self.site_size = 150
+        self.maximum_number_of_meteors = 15
 
     def init_pos(self):
         self.pos = Vector2(self.start_position, self.surface[self.start_position]-self.rocket.height-10)
@@ -136,12 +137,15 @@ class Game:
             pygame.display.flip()
 
     def change_wind(self):
-        if not self.game_option[3] and not self.game_option[2]:
+        if self.game_option[3] and not self.game_option[2]:
             self.wind += (r.random() - 0.5) / 1000
 
     def set_wind_on_start(self):
         if not self.game_option[2]:
             self.wind = (r.random()*2 - 1) / 100
+
+    def set_maximum_number_of_meteors(self):
+        self.maximum_number_of_meteors = 10 + self.game_option[0]
 
     def option_menu(self, screen):
         not_chosen = True
@@ -256,6 +260,7 @@ class Game:
         self.reset_meteors()
         self.reset_wind()
         self.set_wind_on_start()
+        self.set_maximum_number_of_meteors()
         while self.is_playing_game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -265,6 +270,7 @@ class Game:
             pressed = pygame.key.get_pressed()
             if self.prob_of_new_meteor():
                 self.add_meteor()
+            self.overload_meteors()
             self.change_wind()
             self.change_acc(pressed)
             self.add_gravity()
@@ -309,31 +315,38 @@ class Game:
             self.meteor = pygame.Rect(meteor.x, meteor.y, image_meteor.get_width(), image_meteor.get_height())
             screen.blit(image_meteor, self.meteor)
 
+    def overload_meteors(self):
+        for meteor in self.list_of_meteors:
+            if not meteor.is_visible(self.max_x, self.max_y):
+                self.list_of_meteors.remove(meteor)
+                #self.add_meteor()
+
     def add_meteor(self):
-        brzeg = 100
-        if r.random() < 0.8:
-            y = -brzeg
-            x = r.random() * self.max_x
-            x_acc = r.random() * 4 - 2
-            y_acc = r.random() * 2 + 1
-        else:
-            if r.random() < 0.5:
-                y = r.random() * self.max_y / 2
-                x = self.max_x + brzeg
-                x_acc = - r.random() * 2
-                y_acc = r.random() * 2 - 1
+        if len(self.list_of_meteors) < self.maximum_number_of_meteors:
+            brzeg = 100
+            if r.random() < 0.8:
+                y = -brzeg
+                x = r.random() * self.max_x
+                x_acc = r.random() * 4 - 2
+                y_acc = r.random() * 2 + 1
             else:
-                y = r.random() * self.max_y / 3
-                x = -brzeg
-                x_acc = r.random() * 2
-                y_acc = r.random() * 2 - 1
-        rotation = 0
-        rotation_speed = r.randint(1, 3)
-        rotation_counter = 0
-        size = r.choice([70, 60, 50, 40, 30])
-        rotation_direction = r.choice([-1,1])
-        meteor = Meteor(x, y, x_acc, y_acc, rotation, rotation_counter, rotation_speed, rotation_direction, size)
-        self.list_of_meteors.append(meteor)
+                if r.random() < 0.5:
+                    y = r.random() * self.max_y / 2
+                    x = self.max_x + brzeg
+                    x_acc = - r.random() * 2
+                    y_acc = r.random() * 2 - 1
+                else:
+                    y = r.random() * self.max_y / 3
+                    x = -brzeg
+                    x_acc = r.random() * 2
+                    y_acc = r.random() * 2 - 1
+            rotation = 0
+            rotation_speed = r.randint(1, 3)
+            rotation_counter = 0
+            size = r.choice([70, 60, 50, 40, 30])
+            rotation_direction = r.choice([-1,1])
+            meteor = Meteor(x, y, x_acc, y_acc, rotation, rotation_counter, rotation_speed, rotation_direction, size)
+            self.list_of_meteors.append(meteor)
 
     def is_game_lost(self):
         if not 0 < self.rocket.x < self.max_x - self.rocket.width:
@@ -454,6 +467,13 @@ class Meteor:
         self.rotation_speed = rotation_speed
         self.rotation_direction = rotation_direction
         self.size = size
+
+    def is_visible(self, max_x, max_y):
+        if self.x < - 2*self.size or self.x > 1.2*max_x or self.y < -2*self.size or self.y > 1.2*max_y:
+            return False
+        else:
+            return True
+
 
 
 if __name__ == '__main__':
