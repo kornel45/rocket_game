@@ -363,12 +363,13 @@ class Game:
             self.is_lost = True
         elif not 0 < self.rocket.y < self.max_y - self.rocket.height:
             self.is_lost = True
-        elif not self.rocket.y <= self.surface[self.rocket.x] - self.rocket.height:
-            if abs(self.acc.x + self.acc.y) < 4 and self.landing_site[0][0] < self.rocket.x < self.landing_site[0][
-                1]:
-                self.is_won = True
-            else:
+        for x,y in self.hitbox:
+            if not y <= self.surface[x]:
+                if abs(self.acc.x + self.acc.y) < 4 and self.landing_site[0][0] < self.rocket.x < self.landing_site[0][1]:
+                    self.is_won = True
+                    break
                 self.is_lost = True
+                break
         self.is_meteor_collided()
 
     def is_meteor_collided(self):
@@ -387,10 +388,11 @@ class Game:
         self.image = self.sprites[self.is_force][sprite_num]
         self.rocket = pygame.Rect(self.pos.x, self.pos.y, self.image.get_width(), self.image.get_height())
         self.hitbox = [
-            (self.rocket.x + self.rocket.width // 2 + math.cos((90 - sprite_num + i * 45) * math.pi / 180) * 15,
-             self.rocket.y + self.rocket.height // 2 + math.sin((90 - sprite_num + i * 45) * math.pi / 180) * 35)
+            (int(self.rocket.x + self.rocket.width // 2 + math.cos((90 - sprite_num + i * 45) * math.pi / 180) * 15),
+             int(self.rocket.y + self.rocket.height // 2 + math.sin((90 - sprite_num + i * 45) * math.pi / 180) * 35))
             for i in range(8)]
         screen.blit(self.image, self.rocket)
+        #pygame.draw.lines(screen, 1, 1, [(x, y) for x,y in self.hitbox], 10)
 
     def change_rocket_position(self):
         if not self.pause and self.game_started:
