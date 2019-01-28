@@ -62,9 +62,6 @@ class Game:
         self.list_of_meteors = []
         self.main_menu_loop = True
         self.wind = 0
-        self.surface = [self.max_y - 10] * self.max_x
-        self.landing_site = []
-        self.site_size = 50
         self.maximum_number_of_meteors = 15
         self.game_started = False
 
@@ -72,7 +69,7 @@ class Game:
         """
         Method used to initialize rocket position
         """
-        self.pos = Vector2(self.start_position, self.surface[self.start_position] - self.rocket.height - 10)
+        self.pos = Vector2(self.start_position, self.surface[self.start_position] - 65)
 
     def reset_acc(self):
         """
@@ -225,19 +222,21 @@ class Game:
         screen.blit(speed_wind, (10, 50))
 
     def generate_surface(self, rng):
-        prepend = 100
-        for i in range(1000):
-            main_terrain = numpy.random.randint(600, 800)
-            self.surface += self.generate_main_terrain(main_terrain, rng, self.surface[prepend - 1])
+        self.surface = [self.max_y-10] * self.max_x
+        self.landing_site = []
+        self.prepend = 100
+        self.site_size = 150
+        for i in range(500):
+            main_terrain = numpy.random.randint(600,800)
+            self.surface += self.generate_main_terrain(main_terrain, rng, self.surface[self.prepend-1])
             self.surface += [self.surface[-1]] * self.site_size
-            self.landing_site += [
-                [prepend + self.site_size + main_terrain, prepend + 2 * self.site_size + main_terrain]]
-        self.start_position = prepend + self.site_size // 2 - self.rocket.width // 8
-        self.surface = self.surface[(self.max_x - prepend - self.site_size):]
+            self.landing_site += [[self.prepend+self.site_size+main_terrain,self.prepend+2*self.site_size+main_terrain]]
+        self.start_position = self.prepend + self.site_size//2 - self.rocket.width//8
+        self.surface = self.surface[(self.max_x-self.prepend-self.site_size):]
+        self.cutscene()
 
     def cutscene(self):
-        prepend = 100
-        self.surface = self.surface[(self.landing_site[0][0] - prepend):]
+        self.surface = self.surface[(self.landing_site[0][0]-self.prepend):]
         self.landing_site = self.landing_site[1:]
 
     def generate_main_terrain(self, main_terrain, rng, start):
@@ -456,6 +455,7 @@ class Game:
                     elif event.key == pygame.K_ESCAPE:
                         self.is_lost = False
                         self.is_playing_game = False
+                        self.generate_surface(300)
             self.clock.tick(self.tick_time)
 
     def reset_stage(self):
@@ -470,7 +470,6 @@ class Game:
         if self.game_option[1]:
             s = pygame.mixer.Sound('victory.wav')
             s.play()
-        time.sleep(1)
         self.cutscene()
         self.reset_stage()
         self.is_won = False
