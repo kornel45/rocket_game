@@ -7,7 +7,8 @@ import math
 import os
 import random as r
 from random import shuffle
-
+from typing import List
+import time
 import numpy
 import pygame
 from pygame.math import Vector2
@@ -31,8 +32,14 @@ colors = {
 
 
 class Game:
-    def __init__(self, size, rocket, sprites):
-        self.game_option = [1, 0, 0, 0]  # wybory w opcjach, ale uwaga, to lista list
+    def __init__(self, size: tuple, rocket: pygame.Rect, sprites: List[List[pygame.Surface]]):
+        """
+        Initializer of a Game class
+        :param size: size of game window
+        :param rocket: Rect object representing rocket
+        :param sprites: list of images representing rocket look
+        """
+        self.game_option = [1, 0, 0, 0]
         self.sprites = sprites
         self.sprites_len = len(sprites[0])
         self.image = sprites[0][self.sprites_len // 2]
@@ -55,15 +62,22 @@ class Game:
         self.list_of_meteors = []
         self.main_menu_loop = True
         self.wind = 0
-        self.surface = [self.max_y-10] * self.max_x
+        self.surface = [self.max_y - 10] * self.max_x
         self.landing_site = []
-        self.site_size = 150
+        self.site_size = 50
         self.maximum_number_of_meteors = 15
+        self.game_started = False
 
     def init_pos(self):
-        self.pos = Vector2(self.start_position, self.surface[self.start_position]-self.rocket.height-10)
+        """
+        Method used to initialize rocket position
+        """
+        self.pos = Vector2(self.start_position, self.surface[self.start_position] - self.rocket.height - 10)
 
     def reset_acc(self):
+        """
+        Method responsible for resetting acceleration of a rocket
+        """
         self.acc = Vector2(0, 0)
 
     def main_menu(self, screen):
@@ -108,7 +122,11 @@ class Game:
                 screen.blit(new_text, (x_pos, y_pos))
             pygame.display.flip()
 
-    def about(self, screen):
+    def about(self, screen: pygame.display):
+        """
+        Menu option showing authors of this marvelous game
+        :param screen: message will be shown on specified screen
+        """
         is_about = True
         authors = ['Kornel Raczak', 'Pawel Gorecki', 'Lukasz Polakiewicz']
         shuffle(authors)
@@ -142,7 +160,7 @@ class Game:
 
     def set_wind_on_start(self):
         if not self.game_option[2]:
-            self.wind = (r.random()*2 - 1) / 100
+            self.wind = (r.random() * 2 - 1) / 100
 
     def set_maximum_number_of_meteors(self):
         self.maximum_number_of_meteors = 10 + self.game_option[0]
@@ -192,16 +210,16 @@ class Game:
             pygame.display.flip()
 
     def show_speed(self, screen):
-        speed_x_val = abs(round(self.acc.x / (2 / 173)))
-        speed_y_val = abs(round(self.acc.y / (2 / 173)))
-        wind = abs(round(self.wind / (2 / 173), 2))
+        speed_x_val = abs(round(self.acc.x))
+        speed_y_val = abs(round(self.acc.y))
+        wind = abs(round(self.wind, 2))
         if self.wind > 0:
-            strzalka = ' <-'
+            wind_direction = ' <-'
         else:
-            strzalka = ' ->'
+            wind_direction = ' ->'
         speed_x = create_text('Horizontal:  {} km/h'.format(speed_x_val), self.font, 20, (255, 0, 0))
         speed_y = create_text('Vertical:  {} km/h'.format(speed_y_val), self.font, 20, (255, 0, 0))
-        speed_wind = create_text('Wind:' + strzalka + ' {} km/h'.format(10 * wind), self.font, 20, (255, 0, 0))
+        speed_wind = create_text('Wind:' + wind_direction + ' {} km/h'.format(10 * wind), self.font, 20, (255, 0, 0))
         screen.blit(speed_x, (10, 30))
         screen.blit(speed_y, (10, 10))
         screen.blit(speed_wind, (10, 50))
@@ -209,22 +227,22 @@ class Game:
     def generate_surface(self, rng):
         prepend = 100
         for i in range(1000):
-            main_terrain = numpy.random.randint(600,800)
-            self.surface += self.generate_main_terrain(main_terrain, rng, self.surface[prepend-1])
+            main_terrain = numpy.random.randint(600, 800)
+            self.surface += self.generate_main_terrain(main_terrain, rng, self.surface[prepend - 1])
             self.surface += [self.surface[-1]] * self.site_size
-            self.landing_site += [[prepend+self.site_size+main_terrain,prepend+2*self.site_size+main_terrain]]
-        self.start_position = prepend + self.site_size//2 - self.rocket.width//8
-        self.surface = self.surface[(self.max_x-prepend-self.site_size):]
-    
+            self.landing_site += [
+                [prepend + self.site_size + main_terrain, prepend + 2 * self.site_size + main_terrain]]
+        self.start_position = prepend + self.site_size // 2 - self.rocket.width // 8
+        self.surface = self.surface[(self.max_x - prepend - self.site_size):]
+
     def cutscene(self):
         prepend = 100
-        self.surface = self.surface[(self.landing_site[0][0]-prepend):]
+        self.surface = self.surface[(self.landing_site[0][0] - prepend):]
         self.landing_site = self.landing_site[1:]
-        
-        
+
     def generate_main_terrain(self, main_terrain, rng, start):
-        x=numpy.linspace(0, main_terrain,20)
-        y=[self.max_y - numpy.random.randint(10,rng) for i in range(20)]
+        x = numpy.linspace(0, main_terrain, 20)
+        y = [self.max_y - numpy.random.randint(10, rng) for i in range(20)]
         f = interp1d(x, y, kind='cubic')
         return list(f(range(main_terrain)))
 
@@ -255,11 +273,7 @@ class Game:
     def play_game(self, screen):
         self.is_playing_game = True
         self.generate_surface(300)
-        self.init_pos()
-        self.reset_acc()
-        self.reset_meteors()
-        self.reset_wind()
-        self.set_wind_on_start()
+        self.reset_stage()
         self.set_maximum_number_of_meteors()
         while self.is_playing_game:
             for event in pygame.event.get():
@@ -273,35 +287,33 @@ class Game:
             self.overload_meteors()
             self.change_wind()
             self.change_acc(pressed)
-            self.add_gravity()
+            if self.game_started:
+                self.add_gravity()
+                self.add_wind()
             self.add_air_resistance()
-            self.add_wind()
             self.change_rocket_position()
             screen.fill(self.background_color)
-            pygame.draw.lines(screen, 0, 0, [(i,self.surface[i]) for i in range(self.max_x)], 10)
+            pygame.draw.lines(screen, 0, 0, [(i, self.surface[i]) for i in range(self.max_x)], 10)
             self.draw_meteors(screen)
             self.draw_rocket(screen)
             self.show_speed(screen)
-            self.is_game_lost()
-
+            self.set_game_status()
             if self.is_lost:
-                if self.game_option[1]:
-                    s = pygame.mixer.Sound('death.wav')
-                    s.play()
-                self.game_over(screen)
-                self.reset_meteors()
+                self.game_lost(screen)
             if self.is_won:
-                if self.game_option[1]:
-                    s = pygame.mixer.Sound('victory.wav')
-                    s.play()
                 self.game_won(screen)
-                self.reset_meteors()
             pygame.display.flip()
             self.clock.tick(self.tick_time)
 
+    def game_lost(self, screen):
+        if self.game_option[1]:
+            s = pygame.mixer.Sound('death.wav')
+            s.play()
+        self.game_over(screen)
+
     def prob_of_new_meteor(self):
-        liczniki = [0.01, 0.03, 0.06, 0.1]
-        return r.random() < liczniki[self.game_option[0]]
+        probabilities = [0.01, 0.03, 0.06, 0.1]
+        return r.random() < probabilities[self.game_option[0]]
 
     def draw_meteors(self, screen):
         for i, meteor in enumerate(self.list_of_meteors):
@@ -319,7 +331,6 @@ class Game:
         for meteor in self.list_of_meteors:
             if not meteor.is_visible(self.max_x, self.max_y):
                 self.list_of_meteors.remove(meteor)
-                #self.add_meteor()
 
     def add_meteor(self):
         if len(self.list_of_meteors) < self.maximum_number_of_meteors:
@@ -344,29 +355,24 @@ class Game:
             rotation_speed = r.randint(1, 3)
             rotation_counter = 0
             size = r.choice([70, 60, 50, 40, 30])
-            rotation_direction = r.choice([-1,1])
+            rotation_direction = r.choice([-1, 1])
             meteor = Meteor(x, y, x_acc, y_acc, rotation, rotation_counter, rotation_speed, rotation_direction, size)
             self.list_of_meteors.append(meteor)
 
-    def is_game_lost(self):
+    def set_game_status(self):
         if not 0 < self.rocket.x < self.max_x - self.rocket.width:
             self.is_lost = True
-        if not 0 < self.rocket.y < self.max_y - self.rocket.height:
+        elif not 0 < self.rocket.y < self.max_y - self.rocket.height:
             self.is_lost = True
-        if not self.rocket.y <= self.surface[self.rocket.x] - self.rocket.height:
-            if abs(self.acc.x) + abs(self.acc.y) < 4 and self.landing_site[0][0] < self.rocket.x < self.landing_site[0][1]:
+        elif not self.rocket.y <= self.surface[self.rocket.x] - self.rocket.height:
+            if abs(self.acc.x + self.acc.y) < 4 and self.landing_site[0][0] < self.rocket.x < self.landing_site[0][
+                1]:
                 self.is_won = True
             else:
                 self.is_lost = True
-        if (self.start_position - self.site_size//2 < self.rocket.x < self.start_position + self.site_size//2 and 
-                self.rocket.y >= self.surface[self.rocket.x] - self.rocket.height and self.acc.y>0 and
-                abs(self.acc.x)<2 and abs(self.acc.y)<5):
-            self.is_lost = False
-            self.init_pos()
-            self.reset_acc()
-        self.meteors_collision()
+        self.is_meteor_collided()
 
-    def meteors_collision(self):
+    def is_meteor_collided(self):
         for meteor in self.list_of_meteors:
             for x, y in self.hitbox:
                 if ((meteor.x + meteor.size) - x) ** 2 + ((meteor.y + meteor.size) - y) ** 2 <= 0.81 * meteor.size ** 2:
@@ -388,7 +394,7 @@ class Game:
         screen.blit(self.image, self.rocket)
 
     def change_rocket_position(self):
-        if not self.pause:
+        if not self.pause and self.game_started:
             self.pos += self.acc
 
     def add_air_resistance(self):
@@ -408,13 +414,18 @@ class Game:
         if pressed[pygame.K_UP]:
             self.acc.y -= self.move
             self.is_force = True
+            if not self.game_started:
+                self.game_started = True
+                self.acc.y -= 3
         if pressed[pygame.K_DOWN]:
             if self.acc.y < 0:
                 self.acc.y = min(0, self.acc.y + self.move // 4)
         if pressed[pygame.K_LEFT]:
-            self.acc.x -= self.move / 2
+            if self.acc.y != 0:
+                self.acc.x -= self.move / 2
         if pressed[pygame.K_RIGHT]:
-            self.acc.x += self.move / 2
+            if self.acc.y != 0:
+                self.acc.x += self.move / 2
         if pressed[pygame.K_SPACE]:
             self.pause = True
 
@@ -441,23 +452,32 @@ class Game:
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
                         self.is_lost = False
-                        self.init_pos()
-                        self.reset_acc()
-                        self.reset_meteors()
+                        self.reset_stage()
                     elif event.key == pygame.K_ESCAPE:
                         self.is_lost = False
                         self.is_playing_game = False
             self.clock.tick(self.tick_time)
 
-    def game_won(self, screen):
-        self.cutscene()
-        self.pos = Vector2(self.start_position, self.surface[self.start_position]-self.rocket.height)
+    def reset_stage(self):
+        self.init_pos()
         self.reset_acc()
-        self.is_won = False 
+        self.reset_meteors()
+        self.game_started = False
+        self.reset_wind()
+        self.set_wind_on_start()
+
+    def game_won(self, screen):
+        if self.game_option[1]:
+            s = pygame.mixer.Sound('victory.wav')
+            s.play()
+        time.sleep(1)
+        self.cutscene()
+        self.reset_stage()
+        self.is_won = False
 
 
 class Meteor:
-    def __init__(self, x, y, x_acc, y_acc, rotation, rotation_counter, rotation_speed,rotation_direction, size):
+    def __init__(self, x, y, x_acc, y_acc, rotation, rotation_counter, rotation_speed, rotation_direction, size):
         self.x = x
         self.y = y
         self.x_acc = x_acc
@@ -469,11 +489,10 @@ class Meteor:
         self.size = size
 
     def is_visible(self, max_x, max_y):
-        if self.x < - 2*self.size or self.x > 1.2*max_x or self.y < -2*self.size or self.y > 1.2*max_y:
+        if self.x < - 2 * self.size or self.x > 1.2 * max_x or self.y < -2 * self.size or self.y > 1.2 * max_y:
             return False
         else:
             return True
-
 
 
 if __name__ == '__main__':
@@ -488,6 +507,7 @@ if __name__ == '__main__':
     meteors40 = [pygame.transform.scale(picture, (80, 80)) for picture in meteors70]
     meteors30 = [pygame.transform.scale(picture, (60, 60)) for picture in meteors70]
     sprites = [sprites_no_acc, sprites_acc, meteors30, meteors40, meteors50, meteors60, meteors70]
+
     game = Game(size, rocket, sprites)
     game.run()
     pygame.quit()
