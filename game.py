@@ -3,25 +3,22 @@
 Module provides game itself
 You can download needed sprites from here: https://www.mediafire.com/file/cb365fxtu8ivt2u/sprites.7z/file
 """
-import math
-import os
+
 import random as r
+import time
 from random import shuffle
 from typing import List
-import time
+
 import numpy
 import pygame
 from pygame.math import Vector2
 from scipy.interpolate import interp1d
 
-from meteors import load_sprites_meteors
-from rocket import load_sprites
+from background import Background
+from meteor import Meteor
+from rocket import Rocket
 from text_styler import create_text
 
-x = 500
-y = 40
-
-os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (x, y)
 colors = {
     'red': (255, 0, 0), 'black': (0, 0, 0),
     'white': (255, 255, 255), 'green': (0, 255, 0),
@@ -32,38 +29,38 @@ colors = {
 
 
 class Game:
-    def __init__(self, size: tuple, rocket: pygame.Rect, sprites: List[List[pygame.Surface]]):
+    def __init__(self, size: tuple, rocket: Rocket, background: Background, sprites: List[List[pygame.Surface]]):
         """
         Initializer of a Game class
         :param size: size of game window
         :param rocket: Rect object representing rocket
         :param sprites: list of images representing rocket look
         """
-        self.game_option = [1, 0, 0, 0]
-        self.sprites = sprites
-        self.sprites_len = len(sprites[0])
-        self.image = sprites[0][self.sprites_len // 2]
         self.max_x, self.max_y = size
+        self.rocket = rocket
+        self.background = background
+        self.sprites = sprites
+
+        self.game_option = [1, 0, 0, 0]
         self.font = ["Comic Sans MS"]
         self.gravity = 10
         self.air_res = 0.8
         self.pos = None
         self.acc = None
-        self.rocket = rocket
         self.clock = pygame.time.Clock()
-        self.is_playing_game = False
-        self.is_lost = False
-        self.is_won = False
         self.move = 0.5
         self.tick_time = 60
-        self.pause = False
-        self.is_force = False
         self.background_color = colors['white']
         self.list_of_meteors = []
-        self.main_menu_loop = True
         self.wind = 0
-        self.maximum_number_of_meteors = 15
-        self.game_started = False
+        self.maximum_number_of_meteors = 20
+        self.main_menu_loop = True
+        self.is_playing_game = False
+        self.rocket_started = False
+        self.is_force = False
+        self.is_lost = False
+        self.is_won = False
+        self.pause = False
         self.win_time = time.time()
 
     def init_pos(self):
@@ -71,6 +68,7 @@ class Game:
         Method used to initialize rocket position
         """
         self.pos = Vector2(self.start_position, self.surface[self.start_position] - 65)
+        self.rocket.x, self.rocket.y = self.pos
 
     def reset_acc(self):
         """
@@ -223,21 +221,22 @@ class Game:
         screen.blit(speed_wind, (10, 50))
 
     def generate_surface(self, rng):
-        self.surface = [self.max_y-10] * self.max_x
+        self.surface = [self.max_y - 10] * self.max_x
         self.landing_site = []
         self.prepend = 100
         self.site_size = 150
         for i in range(500):
-            main_terrain = numpy.random.randint(600,800)
-            self.surface += self.generate_main_terrain(main_terrain, rng, self.surface[self.prepend-1])
+            main_terrain = numpy.random.randint(600, 800)
+            self.surface += self.generate_main_terrain(main_terrain, rng, self.surface[self.prepend - 1])
             self.surface += [self.surface[-1]] * self.site_size
-            self.landing_site += [[self.prepend+self.site_size+main_terrain,self.prepend+2*self.site_size+main_terrain]]
-        self.start_position = self.prepend + self.site_size//2 - self.rocket.width//8
-        self.surface = self.surface[(self.max_x-self.prepend-self.site_size):]
+            self.landing_site += [
+                [self.prepend + self.site_size + main_terrain, self.prepend + 2 * self.site_size + main_terrain]]
+        self.start_position = self.prepend + self.site_size // 2 - self.rocket.width // 8
+        self.surface = self.surface[(self.max_x - self.prepend - self.site_size):]
         self.cutscene()
 
     def cutscene(self):
-        self.surface = self.surface[(self.landing_site[0][0]-self.prepend):]
+        self.surface = self.surface[(self.landing_site[0][0] - self.prepend):]
         self.landing_site = self.landing_site[1:]
 
     def generate_main_terrain(self, main_terrain, rng, start):
@@ -291,24 +290,25 @@ class Game:
             self.overload_meteors()
             self.change_wind()
             self.change_acc(pressed, time_)
-            if self.game_started:
+            if self.rocket_started:
                 self.add_gravity()
                 self.add_wind()
             self.add_air_resistance()
             self.change_rocket_position()
             screen.fill(self.background_color)
-            pygame.draw.lines(screen, 0, 0, [(i, self.surface[i]) for i in range(self.max_x)], 10)
+            screen.blit(self.background.image, self.background.rect)
+            pygame.draw.lines(screen, colors['white'], 0, [(i, self.surface[i]) for i in range(self.max_x)], 10)
             self.draw_meteors(screen)
-            self.draw_rocket(screen, time_)
             self.show_speed(screen)
+            self.draw_rocket(screen, time_)
             self.set_game_status()
-            if self.is_lost:
-                self.game_lost(screen)
             if self.is_won:
                 self.game_won(screen)
+            if self.is_lost:
+                self.game_lost(screen)
             self.show_counting_down(counting_texts, screen, time_)
-            pygame.display.flip()
             self.clock.tick(self.tick_time)
+            pygame.display.flip()
 
     def show_counting_down(self, counting_texts, screen, time_):
         if time_ - self.win_time <= 4:
@@ -348,19 +348,19 @@ class Game:
             if r.random() < 0.8:
                 y = -brzeg
                 x = r.random() * self.max_x
-                x_acc = r.random() * 4 - 2
-                y_acc = r.random() * 2 + 1
+                x_acc = r.random() * 5 - 2
+                y_acc = r.random() * 3 + 1
             else:
                 if r.random() < 0.5:
                     y = r.random() * self.max_y / 2
                     x = self.max_x + brzeg
-                    x_acc = - r.random() * 2
-                    y_acc = r.random() * 2 - 1
+                    x_acc = - r.random() * 4
+                    y_acc = r.random() * 3 - 1
                 else:
                     y = r.random() * self.max_y / 3
                     x = -brzeg
-                    x_acc = r.random() * 2
-                    y_acc = r.random() * 2 - 1
+                    x_acc = r.random() * 3
+                    y_acc = r.random() * 6 - 1
             rotation = 0
             rotation_speed = r.randint(1, 3)
             rotation_counter = 0
@@ -374,9 +374,10 @@ class Game:
             self.is_lost = True
         elif not 0 < self.rocket.y < self.max_y - self.rocket.height:
             self.is_lost = True
-        for x,y in self.hitbox:
+        for x, y in self.rocket.hit_box:
             if not y <= self.surface[x]:
-                if abs(self.acc.x + self.acc.y) < 4 and self.landing_site[0][0] < self.rocket.x < self.landing_site[0][1]:
+                if abs(self.acc.x + self.acc.y) < 5 and \
+                        self.landing_site[0][0] < self.rocket.x < self.landing_site[0][1]:
                     self.is_won = True
                     break
                 self.is_lost = True
@@ -385,28 +386,12 @@ class Game:
 
     def is_meteor_collided(self):
         for meteor in self.list_of_meteors:
-            for x, y in self.hitbox:
+            for x, y in self.rocket.hit_box:
                 if ((meteor.x + meteor.size) - x) ** 2 + ((meteor.y + meteor.size) - y) ** 2 <= 0.81 * meteor.size ** 2:
                     self.is_lost = True
 
-    def draw_rocket(self, screen, time_):
-        n = 24
-        sprite_num = int(round(self.acc.x * n / self.sprites_len)) + self.sprites_len // 2
-        if sprite_num >= self.sprites_len - 1:
-            sprite_num = self.sprites_len - 1
-        elif sprite_num < 0:
-            sprite_num = 0
-        self.image = self.sprites[self.is_force and (time_ - self.win_time) > 3][sprite_num]
-        self.rocket = pygame.Rect(self.pos.x, self.pos.y, self.image.get_width(), self.image.get_height())
-        self.hitbox = [
-            (int(self.rocket.x + self.rocket.width // 2 + math.cos((90 - sprite_num + i * 45) * math.pi / 180) * 15),
-             int(self.rocket.y + self.rocket.height // 2 + math.sin((90 - sprite_num + i * 45) * math.pi / 180) * 35))
-            for i in range(8)]
-        screen.blit(self.image, self.rocket)
-        #pygame.draw.lines(screen, 1, 1, [(x, y) for x,y in self.hitbox], 10)
-
     def change_rocket_position(self):
-        if not self.pause and self.game_started:
+        if not self.pause and self.rocket_started:
             self.pos += self.acc
 
     def add_air_resistance(self):
@@ -426,8 +411,8 @@ class Game:
         if pressed[pygame.K_UP] and time_ - self.win_time > 3:
             self.acc.y -= self.move
             self.is_force = True
-            if not self.game_started:
-                self.game_started = True
+            if not self.rocket_started:
+                self.rocket_started = True
                 self.acc.y -= 3
         if pressed[pygame.K_DOWN]:
             if self.acc.y < 0:
@@ -447,35 +432,37 @@ class Game:
         screen.blit(text, (x_pos, y_pos))
 
     def game_over(self, screen):
+        game_over_text = create_text("Game Over", self.font, 110, (255, 0, 0))
+        continue_text = create_text("Press space to restart game", self.font, 35, (255, 0, 0))
+        back_to_menu = create_text("Press escape to back to menu", self.font, 35, (255, 0, 0))
+
+        self.show_text(screen, game_over_text, 1 / 2, 1 / 4)
+        self.show_text(screen, continue_text, 1 / 2, 4 / 11)
+        self.show_text(screen, back_to_menu, 1 / 2, 5 / 11)
         while self.is_lost:
-            game_over_text = create_text("Game Over", self.font, 110, (255, 0, 0))
-            continue_text = create_text("Press space to restart game", self.font, 35, (255, 0, 0))
-            back_to_menu = create_text("Press escape to back to menu", self.font, 35, (255, 0, 0))
-
-            self.show_text(screen, game_over_text, 1 / 2, 1 / 4)
-            self.show_text(screen, continue_text, 1 / 2, 4 / 11)
-            self.show_text(screen, back_to_menu, 1 / 2, 5 / 11)
-
             pygame.display.flip()
-
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     exit()
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
+                        self.init_pos()
+                        self.reset_acc()
                         self.is_lost = False
-                        self.reset_stage()
+                        self.rocket_started = False
                     elif event.key == pygame.K_ESCAPE:
                         self.is_lost = False
                         self.is_playing_game = False
-                        self.generate_surface(300)
+                        self.rocket_started = False
+                        # self.generate_surface(300)
             self.clock.tick(self.tick_time)
 
     def reset_stage(self):
         self.init_pos()
         self.reset_acc()
         self.reset_meteors()
-        self.game_started = False
+        self.rocket_started = False
+        self.is_lost = False
         self.reset_wind()
         self.set_wind_on_start()
         self.win_time = time.time()
@@ -488,39 +475,9 @@ class Game:
         self.reset_stage()
         self.is_won = False
 
-
-class Meteor:
-    def __init__(self, x, y, x_acc, y_acc, rotation, rotation_counter, rotation_speed, rotation_direction, size):
-        self.x = x
-        self.y = y
-        self.x_acc = x_acc
-        self.y_acc = y_acc
-        self.rotation = rotation
-        self.rotation_counter = rotation_counter
-        self.rotation_speed = rotation_speed
-        self.rotation_direction = rotation_direction
-        self.size = size
-
-    def is_visible(self, max_x, max_y):
-        if self.x < - 2 * self.size or self.x > 1.2 * max_x or self.y < -2 * self.size or self.y > 1.2 * max_y:
-            return False
-        else:
-            return True
-
-
-if __name__ == '__main__':
-    size = (1400, 1000)
-    rocket = pygame.Rect(size[0] / 2, size[1] / 2, 60, 60)
-    sprites_no_acc = load_sprites(r'no_acc')
-    sprites_acc = load_sprites(r'acc')
-    meteor = pygame.image.load(r'meteors\kometa.png')
-    meteors70 = load_sprites_meteors(r'meteors')
-    meteors60 = [pygame.transform.scale(picture, (120, 120)) for picture in meteors70]
-    meteors50 = [pygame.transform.scale(picture, (100, 100)) for picture in meteors70]
-    meteors40 = [pygame.transform.scale(picture, (80, 80)) for picture in meteors70]
-    meteors30 = [pygame.transform.scale(picture, (60, 60)) for picture in meteors70]
-    sprites = [sprites_no_acc, sprites_acc, meteors30, meteors40, meteors50, meteors60, meteors70]
-
-    game = Game(size, rocket, sprites)
-    game.run()
-    pygame.quit()
+    def draw_rocket(self, screen, time_):
+        image = self.rocket.get_image(self.acc, self.is_force, (time_ - self.win_time) > 3)
+        self.rocket.set_pos(self.pos.x, self.pos.y)
+        self.rocket.set_width(image.get_width())
+        self.rocket.set_height(image.get_height())
+        screen.blit(image, self.rocket)

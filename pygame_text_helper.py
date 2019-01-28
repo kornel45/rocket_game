@@ -17,12 +17,12 @@ def make_font(fonts, size):
 _cached_fonts = {}
 
 
-def get_font(self.font, size):
+def get_font(font, size):
     global _cached_fonts
-    key = str(font_preferences) + '|' + str(size)
+    key = str(font) + '|' + str(size)
     font = _cached_fonts.get(key, None)
     if font is None:
-        font = make_font(font_preferences, size)
+        font = make_font(font, size)
         _cached_fonts[key] = font
     return font
 
