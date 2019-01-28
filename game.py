@@ -64,6 +64,7 @@ class Game:
         self.wind = 0
         self.maximum_number_of_meteors = 15
         self.game_started = False
+        self.win_time = time.time()
 
     def init_pos(self):
         """
@@ -274,6 +275,9 @@ class Game:
         self.generate_surface(300)
         self.reset_stage()
         self.set_maximum_number_of_meteors()
+
+        counting_texts = [create_text(text, self.font, 165, colors['red']) for text in ['3', '2', '1', 'Go!']]
+        self.win_time = time.time()
         while self.is_playing_game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -281,11 +285,12 @@ class Game:
                 if pygame.key.get_pressed()[pygame.K_ESCAPE]:
                     self.pause_game(screen)
             pressed = pygame.key.get_pressed()
+            time_ = time.time()
             if self.prob_of_new_meteor():
                 self.add_meteor()
             self.overload_meteors()
             self.change_wind()
-            self.change_acc(pressed)
+            self.change_acc(pressed, time_)
             if self.game_started:
                 self.add_gravity()
                 self.add_wind()
@@ -294,15 +299,21 @@ class Game:
             screen.fill(self.background_color)
             pygame.draw.lines(screen, 0, 0, [(i, self.surface[i]) for i in range(self.max_x)], 10)
             self.draw_meteors(screen)
-            self.draw_rocket(screen)
+            self.draw_rocket(screen, time_)
             self.show_speed(screen)
             self.set_game_status()
             if self.is_lost:
                 self.game_lost(screen)
             if self.is_won:
                 self.game_won(screen)
+            self.show_counting_down(counting_texts, screen, time_)
             pygame.display.flip()
             self.clock.tick(self.tick_time)
+
+    def show_counting_down(self, counting_texts, screen, time_):
+        if time_ - self.win_time <= 4:
+            text_num = int(time_ - self.win_time)
+            self.show_text(screen, counting_texts[text_num], 1 / 2, 1 / 2)
 
     def game_lost(self, screen):
         if self.game_option[1]:
@@ -378,14 +389,14 @@ class Game:
                 if ((meteor.x + meteor.size) - x) ** 2 + ((meteor.y + meteor.size) - y) ** 2 <= 0.81 * meteor.size ** 2:
                     self.is_lost = True
 
-    def draw_rocket(self, screen):
+    def draw_rocket(self, screen, time_):
         n = 24
         sprite_num = int(round(self.acc.x * n / self.sprites_len)) + self.sprites_len // 2
         if sprite_num >= self.sprites_len - 1:
             sprite_num = self.sprites_len - 1
         elif sprite_num < 0:
             sprite_num = 0
-        self.image = self.sprites[self.is_force][sprite_num]
+        self.image = self.sprites[self.is_force and (time_ - self.win_time) > 3][sprite_num]
         self.rocket = pygame.Rect(self.pos.x, self.pos.y, self.image.get_width(), self.image.get_height())
         self.hitbox = [
             (int(self.rocket.x + self.rocket.width // 2 + math.cos((90 - sprite_num + i * 45) * math.pi / 180) * 15),
@@ -409,10 +420,10 @@ class Game:
     def add_wind(self):
         self.acc.x -= self.wind
 
-    def change_acc(self, pressed):
+    def change_acc(self, pressed, time_):
         self.pause = False
         self.is_force = False
-        if pressed[pygame.K_UP]:
+        if pressed[pygame.K_UP] and time_ - self.win_time > 3:
             self.acc.y -= self.move
             self.is_force = True
             if not self.game_started:
@@ -467,6 +478,7 @@ class Game:
         self.game_started = False
         self.reset_wind()
         self.set_wind_on_start()
+        self.win_time = time.time()
 
     def game_won(self, screen):
         if self.game_option[1]:
