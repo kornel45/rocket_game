@@ -264,6 +264,11 @@ class Game:
     def run(self):
         """ Main method of a Game class. It's responsible for initialization of pygame module and main_menu method. """
         pygame.init()
+        pygame.display.set_caption('Mathematicians into space')
+        path = r'icon.png'
+        icon = pygame.image.load(path)
+        icon.set_colorkey((0, 255, 0))
+        pygame.display.set_icon(icon)
         screen = pygame.display.set_mode((self.max_x, self.max_y))
         self.main_menu(screen)
 
