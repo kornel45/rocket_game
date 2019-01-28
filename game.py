@@ -377,7 +377,7 @@ class Game:
 
     def draw_meteors(self, screen: pygame.display):
         """
-        Method responsible for displaying meteors on the screen
+        Method responsible for displaying meteors on the screen and for move of meteors
         :param screen: main screen
         """
         for i, meteor in enumerate(self.list_of_meteors):
@@ -392,11 +392,17 @@ class Game:
             screen.blit(image_meteor, self.meteor)
 
     def overload_meteors(self):
+        """
+        If meteor is out of the sight it delays it
+        """
         for meteor in self.list_of_meteors:
             if not meteor.is_visible(self.max_x, self.max_y):
                 self.list_of_meteors.remove(meteor)
 
     def add_meteor(self):
+        """
+        Add new meteor to the list if it is possible
+        """
         if len(self.list_of_meteors) < self.maximum_number_of_meteors:
             brzeg = 100
             if r.random() < 0.8:
@@ -442,6 +448,9 @@ class Game:
         self.is_meteor_collided()
 
     def is_meteor_collided(self):
+        """
+        Check that is collision between rocket and any meteor
+        """
         for meteor in self.list_of_meteors:
             for x, y in self.rocket.hit_box:
                 if ((meteor.x + meteor.size) - x) ** 2 + ((meteor.y + meteor.size) - y) ** 2 <= 0.81 * meteor.size ** 2:
