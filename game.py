@@ -250,9 +250,10 @@ class Game:
         self.surface = self.surface[(self.max_x - self.prepend - self.site_size):]
         self.cutscene()
 
-    def fill_surface(self,screen):
-        for x in range(0,self.max_x,10):
-             pygame.draw.line(screen, colors['white'], [x, self.max_y], [x, self.surface[x]], 10)
+    def fill_surface(self, screen):
+        for x in range(0, self.max_x, 3):
+            pygame.draw.line(screen, (x // 10 % 256, x // 40 % 256, (x // 20 + 20) % 256), [x, self.max_y],
+                             [x, self.surface[x]], 5)
 
     def cutscene(self):
         self.surface = self.surface[(self.landing_site[0][0] - self.prepend):]
@@ -405,19 +406,19 @@ class Game:
         """
         if len(self.list_of_meteors) < self.maximum_number_of_meteors:
             brzeg = 100
-            if r.random() < 0.8:
+            if r.random() < 0.7:
                 y = -brzeg
                 x = r.random() * self.max_x
                 x_acc = r.random() * 5 - 2
                 y_acc = r.random() * 3 + 1
             else:
                 if r.random() < 0.5:
-                    y = r.random() * self.max_y / 2
+                    y = r.random() * self.max_y / 3
                     x = self.max_x + brzeg
                     x_acc = - r.random() * 4
                     y_acc = r.random() * 3 - 1
                 else:
-                    y = r.random() * self.max_y / 3
+                    y = r.random() * self.max_y / 4
                     x = -brzeg
                     x_acc = r.random() * 3
                     y_acc = r.random() * 6 - 1
