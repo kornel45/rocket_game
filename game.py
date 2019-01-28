@@ -40,7 +40,6 @@ class Game:
         self.rocket = rocket
         self.background = background
         self.sprites = sprites
-
         self.game_option = [1, 0, 0, 0]
         self.font = ["Comic Sans MS"]
         self.gravity = 10
@@ -166,7 +165,7 @@ class Game:
 
     def set_maximum_number_of_meteors(self):
         """ Sets max number of meteors shown on display """
-        self.maximum_number_of_meteors = 10 + self.game_option[0]
+        self.maximum_number_of_meteors = 12 + 4 * self.game_option[0]
 
     def option_menu(self, screen: pygame.display):
         """
@@ -251,6 +250,10 @@ class Game:
         self.surface = self.surface[(self.max_x - self.prepend - self.site_size):]
         self.cutscene()
 
+    def fill_surface(self,screen):
+        for x in range(0,self.max_x,10):
+             pygame.draw.line(screen, colors['white'], [x, self.max_y], [x, self.surface[x]], 10)
+
     def cutscene(self):
         self.surface = self.surface[(self.landing_site[0][0] - self.prepend):]
         self.landing_site = self.landing_site[1:]
@@ -268,8 +271,11 @@ class Game:
         self.main_menu(screen)
 
     def reset_meteors(self):
-        """ Clears space from meteors"""
+        """ Clears space from meteors and adds some meteors on start"""
         self.list_of_meteors = []
+        how_much_on_start = [6, 9, 12, 15]
+        for i in range(how_much_on_start[self.game_option[0]]):
+            self.add_meteor()
 
     def reset_wind(self):
         """ Resets wind """
@@ -325,6 +331,7 @@ class Game:
             screen.fill(self.background_color)
             screen.blit(self.background.image, self.background.rect)
             pygame.draw.lines(screen, colors['white'], 0, [(i, self.surface[i]) for i in range(self.max_x)], 10)
+            self.fill_surface(screen)
             self.draw_meteors(screen)
             self.show_speed(screen)
             self.draw_rocket(screen, time_)
