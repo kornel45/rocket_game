@@ -56,7 +56,7 @@ class Game:
         self.maximum_number_of_meteors = 20
         self.main_menu_loop = True
         self.is_playing_game = False
-        self.rocket_started = False
+        self.game_started = False
         self.is_force = False
         self.is_lost = False
         self.is_won = False
@@ -76,7 +76,11 @@ class Game:
         """
         self.acc = Vector2(0, 0)
 
-    def main_menu(self, screen):
+    def main_menu(self, screen: pygame.display):
+        """
+        This creates main menu while loop. It's actually the main windows of the game.
+        :param screen: Screen on which main menu should be displayed
+        """
         texts = ['Start game', 'Options', 'About', 'Exit']
         text_len = len(texts)
         option = 0
@@ -94,7 +98,7 @@ class Game:
                         elif option == 1:
                             self.option_menu(screen)
                         elif option == 2:
-                            self.about(screen)
+                            self.about_menu(screen)
                         elif option == 3:
                             self.main_menu_loop = False
                             self.is_playing_game = True
@@ -118,10 +122,10 @@ class Game:
                 screen.blit(new_text, (x_pos, y_pos))
             pygame.display.flip()
 
-    def about(self, screen: pygame.display):
+    def about_menu(self, screen: pygame.display):
         """
         Menu option showing authors of this marvelous game
-        :param screen: message will be shown on specified screen
+        :param screen: about menu will be shown on specified screen
         """
         is_about = True
         authors = ['Kornel Raczak', 'Pawel Gorecki', 'Lukasz Polakiewicz']
@@ -151,17 +155,24 @@ class Game:
             pygame.display.flip()
 
     def change_wind(self):
+        """ Method responsible for changing the force of wind"""
         if self.game_option[3] and not self.game_option[2]:
-            self.wind += (r.random() - 0.5) / 1000
+            self.wind += (r.random() - 0.5) / 700
 
     def set_wind_on_start(self):
+        """ Initializes wind force at the beginning of a game"""
         if not self.game_option[2]:
             self.wind = (r.random() * 2 - 1) / 100
 
     def set_maximum_number_of_meteors(self):
+        """ Sets max number of meteors shown on display """
         self.maximum_number_of_meteors = 10 + self.game_option[0]
 
-    def option_menu(self, screen):
+    def option_menu(self, screen: pygame.display):
+        """
+        Creates option menu, where user can configure game play
+        :param screen: Screen on which main menu should be displayed
+        """
         not_chosen = True
         option_meteors = ["Meteors: Easy", "Meteors: Medium", "Meteors: Hard", "Meteors: Impossible"]
         options1 = ['Music: Off', 'Music: On']
@@ -206,16 +217,21 @@ class Game:
             pygame.display.flip()
 
     def show_speed(self, screen):
-        speed_x_val = abs(round(self.acc.x))
-        speed_y_val = abs(round(self.acc.y))
-        wind = abs(round(self.wind, 2))
+        """
+        Method responsible for showing vertical and horizontal speed of rocket, but also the speed of wind.
+        :param screen: Screen on which above speeds will be shown
+        """
+        lagrangian = 117 / 17
+        speed_x_val = abs(round(self.acc.x * lagrangian))
+        speed_y_val = abs(round(self.acc.y * lagrangian))
+        wind = abs(round(self.wind * lagrangian))
         if self.wind > 0:
             wind_direction = ' <-'
         else:
             wind_direction = ' ->'
-        speed_x = create_text('Horizontal:  {} km/h'.format(speed_x_val), self.font, 20, (255, 0, 0))
-        speed_y = create_text('Vertical:  {} km/h'.format(speed_y_val), self.font, 20, (255, 0, 0))
-        speed_wind = create_text('Wind:' + wind_direction + ' {} km/h'.format(10 * wind), self.font, 20, (255, 0, 0))
+        speed_x = create_text('Horizontal:  {} m/h'.format(speed_x_val), self.font, 20, (255, 0, 0))
+        speed_y = create_text('Vertical:  {} m/h'.format(speed_y_val), self.font, 20, (255, 0, 0))
+        speed_wind = create_text('Wind:' + wind_direction + ' {} m/h'.format(10 * wind), self.font, 20, (255, 0, 0))
         screen.blit(speed_x, (10, 30))
         screen.blit(speed_y, (10, 10))
         screen.blit(speed_wind, (10, 50))
@@ -246,17 +262,24 @@ class Game:
         return list(f(range(main_terrain)))
 
     def run(self):
+        """ Main method of a Game class. It's responsible for initialization of pygame module and main_menu method. """
         pygame.init()
         screen = pygame.display.set_mode((self.max_x, self.max_y))
         self.main_menu(screen)
 
     def reset_meteors(self):
+        """ Clears space from meteors"""
         self.list_of_meteors = []
 
     def reset_wind(self):
+        """ Resets wind """
         self.wind = 0
 
     def pause_game(self, screen):
+        """
+        Pauses game, so that player can go for a drink
+        :param screen: Screen on which main menu should be displayed
+        """
         game_pause = create_text("Game Pause", self.font, 90, colors['red'])
         pause_menu = True
         while pause_menu:
@@ -270,6 +293,10 @@ class Game:
             self.clock.tick(30)
 
     def play_game(self, screen):
+        """
+        Turns on window with game play itself. This method is responsible for all the fun you have!
+        :param screen: Screen on which main menu should be displayed
+        """
         self.is_playing_game = True
         self.generate_surface(300)
         self.reset_stage()
@@ -290,7 +317,7 @@ class Game:
             self.overload_meteors()
             self.change_wind()
             self.change_acc(pressed, time_)
-            if self.rocket_started:
+            if self.game_started:
                 self.add_gravity()
                 self.add_wind()
             self.add_air_resistance()
@@ -311,21 +338,36 @@ class Game:
             pygame.display.flip()
 
     def show_counting_down(self, counting_texts, screen, time_):
+        """
+        Method displays counting down at the beginning of every challenge!
+        :param counting_texts: texts that should be displayed
+        :param screen: Screen on which counting should be displayed
+        :param time_: current time
+        """
         if time_ - self.win_time <= 4:
             text_num = int(time_ - self.win_time)
             self.show_text(screen, counting_texts[text_num], 1 / 2, 1 / 2)
 
     def game_lost(self, screen):
+        """
+        Method is responsible for handling lost game
+        :param screen: main screen
+        """
         if self.game_option[1]:
             s = pygame.mixer.Sound('death.wav')
             s.play()
         self.game_over(screen)
 
     def prob_of_new_meteor(self):
+        """ Generates new meteors with probability depending on option set in option menu """
         probabilities = [0.01, 0.03, 0.06, 0.1]
         return r.random() < probabilities[self.game_option[0]]
 
     def draw_meteors(self, screen):
+        """
+        Method responsible for displaying meteors on the screen
+        :param screen: main screen
+        """
         for i, meteor in enumerate(self.list_of_meteors):
             self.list_of_meteors[i].x += meteor.x_acc - self.wind
             self.list_of_meteors[i].y += meteor.y_acc
@@ -370,6 +412,9 @@ class Game:
             self.list_of_meteors.append(meteor)
 
     def set_game_status(self):
+        """
+        Method responsible for checking if game should end (because of win or lose) and setting appropriate flags
+        """
         if not 0 < self.rocket.x < self.max_x - self.rocket.width:
             self.is_lost = True
         elif not 0 < self.rocket.y < self.max_y - self.rocket.height:
@@ -391,18 +436,22 @@ class Game:
                     self.is_lost = True
 
     def change_rocket_position(self):
-        if not self.pause and self.rocket_started:
+        """ Method enables changing position of a rocket if not pause and game started"""
+        if not self.pause and self.game_started:
             self.pos += self.acc
 
     def add_air_resistance(self):
+        """ Adds air resistance to the rocket acceleration """
         if not self.pause:
             self.acc *= (1 - self.air_res / self.tick_time)
 
     def add_gravity(self):
+        """ Adds gravity force to pull down the rocket """
         if not self.pause:
             self.acc.y += self.gravity / self.tick_time
 
     def add_wind(self):
+        """ Adds wind force """
         self.acc.x -= self.wind
 
     def change_acc(self, pressed, time_):
@@ -411,8 +460,8 @@ class Game:
         if pressed[pygame.K_UP] and time_ - self.win_time > 3:
             self.acc.y -= self.move
             self.is_force = True
-            if not self.rocket_started:
-                self.rocket_started = True
+            if not self.game_started:
+                self.game_started = True
                 self.acc.y -= 3
         if pressed[pygame.K_DOWN]:
             if self.acc.y < 0:
@@ -449,11 +498,11 @@ class Game:
                         self.init_pos()
                         self.reset_acc()
                         self.is_lost = False
-                        self.rocket_started = False
+                        self.game_started = False
                     elif event.key == pygame.K_ESCAPE:
                         self.is_lost = False
                         self.is_playing_game = False
-                        self.rocket_started = False
+                        self.game_started = False
                         # self.generate_surface(300)
             self.clock.tick(self.tick_time)
 
@@ -461,7 +510,7 @@ class Game:
         self.init_pos()
         self.reset_acc()
         self.reset_meteors()
-        self.rocket_started = False
+        self.game_started = False
         self.is_lost = False
         self.reset_wind()
         self.set_wind_on_start()
