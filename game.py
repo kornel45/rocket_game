@@ -201,7 +201,7 @@ class Game:
                         not_chosen = False
                 elif event.type == pygame.QUIT:
                     not_chosen = False
-                    self.done = True
+                    self.main_menu_loop
 
             screen.fill(self.background_color)
             for i, opt in enumerate(options):
@@ -216,7 +216,7 @@ class Game:
                 screen.blit(new_text, (x_pos, y_pos))
             pygame.display.flip()
 
-    def show_speed(self, screen):
+    def show_speed(self, screen: pygame.display):
         """
         Method responsible for showing vertical and horizontal speed of rocket, but also the speed of wind.
         :param screen: Screen on which above speeds will be shown
@@ -242,7 +242,7 @@ class Game:
         self.prepend = 100
         self.site_size = 150
         for i in range(500):
-            main_terrain = numpy.random.randint(600, 800)
+            main_terrain = numpy.random.randint(700, 900)
             self.surface += self.generate_main_terrain(main_terrain, rng, self.surface[self.prepend - 1])
             self.surface += [self.surface[-1]] * self.site_size
             self.landing_site += [
@@ -275,7 +275,7 @@ class Game:
         """ Resets wind """
         self.wind = 0
 
-    def pause_game(self, screen):
+    def pause_game(self, screen: pygame.display):
         """
         Pauses game, so that player can go for a drink
         :param screen: Screen on which main menu should be displayed
@@ -292,13 +292,13 @@ class Game:
             pygame.display.flip()
             self.clock.tick(30)
 
-    def play_game(self, screen):
+    def play_game(self, screen: pygame.display):
         """
         Turns on window with game play itself. This method is responsible for all the fun you have!
         :param screen: Screen on which main menu should be displayed
         """
         self.is_playing_game = True
-        self.generate_surface(300)
+        self.generate_surface(0.5 * self.max_y)
         self.reset_stage()
         self.set_maximum_number_of_meteors()
 
@@ -337,7 +337,7 @@ class Game:
             self.clock.tick(self.tick_time)
             pygame.display.flip()
 
-    def show_counting_down(self, counting_texts, screen, time_):
+    def show_counting_down(self, counting_texts: List[pygame.Surface], screen: pygame.display, time_: float):
         """
         Method displays counting down at the beginning of every challenge!
         :param counting_texts: texts that should be displayed
@@ -348,7 +348,7 @@ class Game:
             text_num = int(time_ - self.win_time)
             self.show_text(screen, counting_texts[text_num], 1 / 2, 1 / 2)
 
-    def game_lost(self, screen):
+    def game_lost(self, screen: pygame.display):
         """
         Method is responsible for handling lost game
         :param screen: main screen
@@ -363,7 +363,7 @@ class Game:
         probabilities = [0.01, 0.03, 0.06, 0.1]
         return r.random() < probabilities[self.game_option[0]]
 
-    def draw_meteors(self, screen):
+    def draw_meteors(self, screen: pygame.display):
         """
         Method responsible for displaying meteors on the screen
         :param screen: main screen
@@ -421,7 +421,7 @@ class Game:
             self.is_lost = True
         for x, y in self.rocket.hit_box:
             if not y <= self.surface[x]:
-                if abs(self.acc.x + self.acc.y) < 5 and \
+                if abs(self.acc.x + self.acc.y) < 3 and \
                         self.landing_site[0][0] < self.rocket.x < self.landing_site[0][1]:
                     self.is_won = True
                     break
@@ -436,7 +436,7 @@ class Game:
                     self.is_lost = True
 
     def change_rocket_position(self):
-        """ Method enables changing position of a rocket if not pause and game started"""
+        """ Method enables changing position of a rocket if not pause and game started """
         if not self.pause and self.game_started:
             self.pos += self.acc
 
@@ -454,7 +454,12 @@ class Game:
         """ Adds wind force """
         self.acc.x -= self.wind
 
-    def change_acc(self, pressed, time_):
+    def change_acc(self, pressed: List, time_: float):
+        """
+        Method responsible for changing acceleration of a rocket depending on pressed keys. 
+        :param pressed: pygame list with pressed keys
+        :param time_:time_ flag preserves move before game starts
+        """
         self.pause = False
         self.is_force = False
         if pressed[pygame.K_UP] and time_ - self.win_time > 3:
@@ -475,12 +480,23 @@ class Game:
         if pressed[pygame.K_SPACE]:
             self.pause = True
 
-    def show_text(self, screen, text, x_ratio, y_ratio):
+    def show_text(self, screen: pygame.display, text: pygame.Surface, x_ratio: float, y_ratio: float):
+        """
+        Method responsible for showing text on screen. 
+        :param screen: main display
+        :param text: text we want to show
+        :param x_ratio: x / max_x, ratio where should middle of a text appear according to x axis
+        :param y_ratio: y / max_y, ratio where should middle of a text appear according to y axis
+        """
         x_pos = x_ratio * (self.max_x - text.get_width())
         y_pos = y_ratio * (self.max_y - text.get_height())
         screen.blit(text, (x_pos, y_pos))
 
-    def game_over(self, screen):
+    def game_over(self, screen: pygame.display):
+        """
+        Menu which will be shown after losing the game.
+        :param screen: main display 
+        """
         game_over_text = create_text("Game Over", self.font, 110, (255, 0, 0))
         continue_text = create_text("Press space to restart game", self.font, 35, (255, 0, 0))
         back_to_menu = create_text("Press escape to back to menu", self.font, 35, (255, 0, 0))
@@ -495,18 +511,15 @@ class Game:
                     exit()
                 elif event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_SPACE:
-                        self.init_pos()
-                        self.reset_acc()
-                        self.is_lost = False
-                        self.game_started = False
+                        self.reset_stage()
                     elif event.key == pygame.K_ESCAPE:
                         self.is_lost = False
                         self.is_playing_game = False
                         self.game_started = False
-                        # self.generate_surface(300)
             self.clock.tick(self.tick_time)
 
     def reset_stage(self):
+        """ Resets settings of current game """
         self.init_pos()
         self.reset_acc()
         self.reset_meteors()
@@ -516,7 +529,11 @@ class Game:
         self.set_wind_on_start()
         self.win_time = time.time()
 
-    def game_won(self, screen):
+    def game_won(self, screen: pygame.display):
+        """
+        Planned behaviour after landing on landing site
+        :param screen: main display 
+        """
         if self.game_option[1]:
             s = pygame.mixer.Sound('victory.wav')
             s.play()
@@ -524,7 +541,12 @@ class Game:
         self.reset_stage()
         self.is_won = False
 
-    def draw_rocket(self, screen, time_):
+    def draw_rocket(self, screen: pygame.display, time_: float):
+        """
+        Method responsible for drawing rocket in the right position
+        :param screen: main display
+        :param time_: preserves image change before game start
+        """
         image = self.rocket.get_image(self.acc, self.is_force, (time_ - self.win_time) > 3)
         self.rocket.set_pos(self.pos.x, self.pos.y)
         self.rocket.set_width(image.get_width())
