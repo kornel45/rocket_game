@@ -2,6 +2,9 @@ import pygame
 
 
 class Meteor:
+    """
+    Class represents meteors.
+    """
     def __init__(self, x, y, x_acc, y_acc, rotation, rotation_counter, rotation_speed, rotation_direction, size):
         self.x = x
         self.y = y
@@ -14,12 +17,18 @@ class Meteor:
         self.size = size
 
     def is_visible(self, max_x, max_y):
+        """
+        Check if meteor is in on the screen
+        """
         if self.x < - 2 * self.size or self.x > 1.2 * max_x or self.y < -2 * self.size or self.y > 1.2 * max_y:
             return False
         return True
 
 
 def load_first_sprites_meteors(folder_path):
+    """
+    Load sprites of meteors
+    """
     meteory = []
     rozmiary = [70]
     pozycje = [i for i in range(36)]
@@ -31,9 +40,16 @@ def load_first_sprites_meteors(folder_path):
 
 
 def scaling(sprites, to_size):
+    """
+    Scales images to_size x to_size
+    """
     return [pygame.transform.scale(picture, (to_size, to_size)) for picture in sprites]
 
+
 def load_all_sprites_of_meteors(folder_path):
+    """
+    Load sprites of meteors and scales it.
+    """
     meteors70 = load_first_sprites_meteors(folder_path)
     meteors60 = scaling(meteors70, 120)
     meteors50 = scaling(meteors70, 100)
