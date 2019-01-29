@@ -29,6 +29,7 @@ colors = {
 
 
 class Game:
+    """ Main module responsible for initialization and handling game itself """
     def __init__(self, size: tuple, rocket: Rocket, background: Background, sprites: List[List[pygame.Surface]]):
         """
         Initializer of a Game class
@@ -376,7 +377,7 @@ class Game:
         :param current_time: current time
         """
         if current_time - self.win_time <= self.count_down_time:
-            text_num = int(2 * (current_time - self.win_time))
+            text_num = int(1.8 * (current_time - self.win_time))
             self.show_text(screen, counting_texts[text_num], 1 / 2, 1 / 2)
 
     def game_lost(self, screen: pygame.Surface):
