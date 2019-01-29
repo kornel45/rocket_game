@@ -429,19 +429,19 @@ class Game:
             if r.random() < 0.7:
                 y = -brzeg
                 x = r.random() * self.max_x
-                x_acc = r.random() * 5 - 2
-                y_acc = r.random() * 3 + 1
+                x_acc = r.random() * 3 - 1.5
+                y_acc = r.random() * 2 + 1
             else:
                 if r.random() < 0.5:
                     y = r.random() * self.max_y / 3
                     x = self.max_x + brzeg
-                    x_acc = - r.random() * 4
+                    x_acc = - r.random() * 3 - 1
                     y_acc = r.random() * 3 - 1
                 else:
                     y = r.random() * self.max_y / 4
                     x = -brzeg
-                    x_acc = r.random() * 3
-                    y_acc = r.random() * 6 - 1
+                    x_acc = r.random() * 3 + 1
+                    y_acc = r.random() * 3 - 2.5
             rotation = 0
             rotation_speed = r.randint(1, 3)
             rotation_counter = 0
