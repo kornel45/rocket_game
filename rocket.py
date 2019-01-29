@@ -80,7 +80,7 @@ class Rocket(pygame.Rect):
         self.height = height
 
 
-def load_sprites(folder_path: str) -> List[pygame.image]:
+def load_sprites(folder_path: str) -> List[pygame.Surface]:
     """
     Method loads sprites from folder_path
     :param folder_path: path to folder containing rocket sprites
