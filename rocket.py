@@ -5,6 +5,7 @@ import pygame
 
 
 class Rocket(pygame.Rect):
+    """ Module responsible for rocket handling """
     def __init__(self, size_x, size_y, x, y, acc_sprites_folder, no_acc_sprites_folder):
         super(Rocket, self).__init__(size_x, size_y, x, y)
         self.acc_sprites = load_sprites(acc_sprites_folder)
@@ -13,6 +14,9 @@ class Rocket(pygame.Rect):
         self.sprites_len = len(self.acc_sprites)
 
     def get_image(self, acc, force, unlocked):
+        """
+        Calculate which sprite to use given rockets' properties
+        """
         n = 24
         sprite_num = int(round(acc.x * n / self.sprites_len)) + self.sprites_len // 2
         if sprite_num >= self.sprites_len - 1:
@@ -26,6 +30,10 @@ class Rocket(pygame.Rect):
             return self.no_acc_sprites[sprite_num]
 
     def set_hit_box(self, sprite_num):
+        """
+        Calculates hitbox of the rocket.
+        :param sprite_num: Number of rockets' sprite
+        """
         self.hit_box = [(1,1) for i in range(8)]
         h=[(self.x + self.width // 2, self.y + self.height // 2) for i in range(8)]
         h2=[(math.cos((90 + i * 45) * math.pi / 180) * 15, math.sin((90 + i * 45) * math.pi / 180) * 35) for i in range(8)]
