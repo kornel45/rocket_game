@@ -62,6 +62,7 @@ class Game:
         self.is_won = False
         self.pause = False
         self.win_time = time.time()
+        self.count_down_time = 2
 
     def init_pos(self):
         """
@@ -374,9 +375,9 @@ class Game:
         :param screen: Screen on which counting should be displayed
         :param current_time: current time
         """
-        if current_time - self.win_time <= 4:
-            text_num = int(current_time - self.win_time)
-            self.show_text(screen, counting_texts[text_num-1], 1 / 2, 1 / 2)
+        if current_time - self.win_time <= self.count_down_time:
+            text_num = int(2 * (current_time - self.win_time))
+            self.show_text(screen, counting_texts[text_num], 1 / 2, 1 / 2)
 
     def game_lost(self, screen: pygame.Surface):
         """
@@ -457,7 +458,7 @@ class Game:
             self.is_lost = True
         for x, y in self.rocket.hit_box:
             if not y <= self.surface[x]:
-                if abs(self.acc.x + self.acc.y) < 3 and \
+                if abs(self.acc.x + self.acc.y) < 5 and \
                         self.landing_site[0][0] < self.rocket.x < self.landing_site[0][1]:
                     self.is_won = True
                     break
@@ -501,7 +502,7 @@ class Game:
         """
         self.pause = False
         self.is_force = False
-        if pressed[pygame.K_UP] and current_time - self.win_time > 3:
+        if pressed[pygame.K_UP] and current_time - self.win_time > self.count_down_time:
             self.acc.y -= self.move
             self.is_force = True
             if not self.game_started:
@@ -591,4 +592,3 @@ class Game:
         self.rocket.set_width(image.get_width())
         self.rocket.set_height(image.get_height())
         screen.blit(image, self.rocket)
-        #pygame.draw.lines(screen, 255, 1, [(x, y) for x,y in self.rocket.hit_box], 10)
