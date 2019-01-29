@@ -69,7 +69,7 @@ class Game:
         """
         Method used to initialize rocket position
         """
-        self.pos = Vector2(self.start_position, self.surface[self.start_position] - 67)
+        self.pos = Vector2(self.start_position, self.surface[self.start_position] - 69)
         self.rocket.x, self.rocket.y = self.pos
 
     def reset_acc(self):
