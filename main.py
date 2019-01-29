@@ -1,3 +1,4 @@
+""" Main module of a game. This is where main settings are set """
 import os
 import pygame
 
