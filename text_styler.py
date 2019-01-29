@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, List
 
 import pygame
 
@@ -22,13 +22,12 @@ def make_font(fonts: list, size: int) -> pygame.font.Font:
 _cached_fonts = {}
 
 
-def get_font(font_preferences, size):
+def get_font(font_preferences: List[str], size: int) -> pygame.font.Font:
     """
     Method responsible for creating (if not already cached) and getting font surface
     :param font_preferences: font name
     :param size: font size
     :return: pygame surface representing font
-    rtype: pygame.font.Font
     """
     global _cached_fonts
     key = str(font_preferences) + '|' + str(size)

@@ -2,7 +2,7 @@
 import math
 import os
 from typing import List
-
+from pygame.math import Vector2
 import pygame
 
 
@@ -25,7 +25,7 @@ class Rocket(pygame.Rect):
         self.hit_box = []
         self.sprites_len = len(self.acc_sprites)
 
-    def get_image(self, acc: pygame.Vector2, force: bool, unlocked: bool) -> pygame.image:
+    def get_image(self, acc: Vector2, force: bool, unlocked: bool) -> pygame.image:
         """
         Returns image of a rocket corresponding to it's speed in vertical and horizontal direction.
         Also it looks at if player holds Up Arrow button (force) and if the game already started (unlocked)
@@ -80,7 +80,7 @@ class Rocket(pygame.Rect):
         self.height = height
 
 
-def load_sprites(folder_path: str) -> List[pygame.image]:
+def load_sprites(folder_path: str) -> List[pygame.Surface]:
     """
     Method loads sprites from folder_path
     :param folder_path: path to folder containing rocket sprites
