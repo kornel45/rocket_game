@@ -238,7 +238,7 @@ class Game:
         screen.blit(speed_y, (10, 10))
         screen.blit(speed_wind, (10, 50))
 
-    def generate_surface(self, rng):
+    def generate_surface(self, rng: int):
         """
         Generates planet surface along with landing platforms.
         :param rng: Sets maximum height of planets' surface
@@ -257,7 +257,7 @@ class Game:
         self.surface = self.surface[(self.max_x - self.prepend - self.site_size):]
         self.cutscene()
 
-    def fill_surface(self, screen):
+    def fill_surface(self, screen: pygame.Surface):
         """
         Fills surface with colour.
         :param screen: Screen on which surface is drawn
@@ -271,7 +271,7 @@ class Game:
         self.surface = self.surface[(self.landing_site[0][0] - self.prepend):]
         self.landing_site = self.landing_site[1:]
 
-    def generate_main_terrain(self, main_terrain, rng, start):
+    def generate_main_terrain(self, main_terrain: int, rng: int, start: int) -> List[int]:
         """
         Generates curve of terrain in between two platforms.
         :param main_terrain: length of terrain to be generated
