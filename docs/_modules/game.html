@@ -1,0 +1,705 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>game &#8212; Rocket Game 29.01.2019 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/language_data.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <h1>Source code for game</h1><div class="highlight"><pre>
+<span></span><span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Module provides game itself.\n</span>
+<span class="sd">You can download needed sprites from here: https://www.mediafire.com/file/cb365fxtu8ivt2u/sprites.7z/file</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">random</span> <span class="k">as</span> <span class="nn">r</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">random</span> <span class="k">import</span> <span class="n">shuffle</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="k">import</span> <span class="n">List</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span>
+<span class="kn">import</span> <span class="nn">pygame</span>
+<span class="kn">from</span> <span class="nn">pygame.math</span> <span class="k">import</span> <span class="n">Vector2</span>
+<span class="kn">from</span> <span class="nn">scipy.interpolate</span> <span class="k">import</span> <span class="n">interp1d</span>
+
+<span class="kn">from</span> <span class="nn">background</span> <span class="k">import</span> <span class="n">Background</span>
+<span class="kn">from</span> <span class="nn">meteor</span> <span class="k">import</span> <span class="n">Meteor</span>
+<span class="kn">from</span> <span class="nn">rocket</span> <span class="k">import</span> <span class="n">Rocket</span>
+<span class="kn">from</span> <span class="nn">text_styler</span> <span class="k">import</span> <span class="n">create_text</span>
+
+<span class="n">colors</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;red&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s1">&#39;black&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="s1">&#39;white&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span> <span class="s1">&#39;green&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+    <span class="s1">&#39;brown&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">128</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s1">&#39;pink&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">51</span><span class="p">,</span> <span class="mi">153</span><span class="p">),</span>
+    <span class="s1">&#39;yellow&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="s1">&#39;blue&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">),</span>
+    <span class="s1">&#39;purple&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">153</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
+<span class="p">}</span>
+
+
+<div class="viewcode-block" id="Game"><a class="viewcode-back" href="../game.html#game.Game">[docs]</a><span class="k">class</span> <span class="nc">Game</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot; Main module responsible for initialization and handling game itself &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">size</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">,</span> <span class="n">rocket</span><span class="p">:</span> <span class="n">Rocket</span><span class="p">,</span> <span class="n">background</span><span class="p">:</span> <span class="n">Background</span><span class="p">,</span> <span class="n">sprites</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">pygame</span><span class="o">.</span><span class="n">Surface</span><span class="p">]]):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializer of a Game class</span>
+<span class="sd">        :param size: size of game window</span>
+<span class="sd">        :type size: tuple</span>
+<span class="sd">        :param rocket: Rect object representing rocket</span>
+<span class="sd">        :param sprites: list of images representing rocket look</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_y</span> <span class="o">=</span> <span class="n">size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rocket</span> <span class="o">=</span> <span class="n">rocket</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">background</span> <span class="o">=</span> <span class="n">background</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sprites</span> <span class="o">=</span> <span class="n">sprites</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">game_option</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">font</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Comic Sans MS&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gravity</span> <span class="o">=</span> <span class="mi">10</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">air_res</span> <span class="o">=</span> <span class="mf">0.8</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">acc</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clock</span> <span class="o">=</span> <span class="n">pygame</span><span class="o">.</span><span class="n">time</span><span class="o">.</span><span class="n">Clock</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">move</span> <span class="o">=</span> <span class="mf">0.5</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tick_time</span> <span class="o">=</span> <span class="mi">60</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">background_color</span> <span class="o">=</span> <span class="n">colors</span><span class="p">[</span><span class="s1">&#39;white&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">list_of_meteors</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wind</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maximum_number_of_meteors</span> <span class="o">=</span> <span class="mi">20</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_menu_loop</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_playing_game</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">game_started</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_force</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_lost</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_won</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pause</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">win_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">count_down_time</span> <span class="o">=</span> <span class="mi">2</span>
+
+<div class="viewcode-block" id="Game.init_pos"><a class="viewcode-back" href="../game.html#game.Game.init_pos">[docs]</a>    <span class="k">def</span> <span class="nf">init_pos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method used to initialize rocket position</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">=</span> <span class="n">Vector2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">start_position</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">surface</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">start_position</span><span class="p">]</span> <span class="o">-</span> <span class="mi">69</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rocket</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rocket</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos</span></div>
+
+<div class="viewcode-block" id="Game.reset_acc"><a class="viewcode-back" href="../game.html#game.Game.reset_acc">[docs]</a>    <span class="k">def</span> <span class="nf">reset_acc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method responsible for resetting acceleration of a rocket</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">acc</span> <span class="o">=</span> <span class="n">Vector2</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Game.main_menu"><a class="viewcode-back" href="../game.html#game.Game.main_menu">[docs]</a>    <span class="k">def</span> <span class="nf">main_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">screen</span><span class="p">:</span> <span class="n">pygame</span><span class="o">.</span><span class="n">Surface</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This creates main menu while loop. It&#39;s actually the main windows of the game.</span>
+<span class="sd">        :param screen: Screen on which main menu should be displayed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">texts</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Start game&#39;</span><span class="p">,</span> <span class="s1">&#39;Options&#39;</span><span class="p">,</span> <span class="s1">&#39;About&#39;</span><span class="p">,</span> <span class="s1">&#39;Exit&#39;</span><span class="p">]</span>
+        <span class="n">text_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">texts</span><span class="p">)</span>
+        <span class="n">option</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">main_menu_loop</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clock</span><span class="o">.</span><span class="n">tick</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tick_time</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">pygame</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">pygame</span><span class="o">.</span><span class="n">KEYDOWN</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="n">pygame</span><span class="o">.</span><span class="n">K_DOWN</span><span class="p">:</span>
+                        <span class="n">option</span> <span class="o">=</span> <span class="p">(</span><span class="n">option</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">text_len</span>
+                    <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="n">pygame</span><span class="o">.</span><span class="n">K_UP</span><span class="p">:</span>
+                        <span class="n">option</span> <span class="o">=</span> <span class="p">(</span><span class="n">option</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">text_len</span>
+                    <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="n">pygame</span><span class="o">.</span><span class="n">K_SPACE</span><span class="p">,</span> <span class="n">pygame</span><span class="o">.</span><span class="n">K_RETURN</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">option</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">play_game</span><span class="p">(</span><span class="n">screen</span><span class="p">)</span>
+                        <span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">option_menu</span><span class="p">(</span><span class="n">screen</span><span class="p">)</span>
+                        <span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">about_menu</span><span class="p">(</span><span class="n">screen</span><span class="p">)</span>
+                        <span class="k">elif</span> <span class="n">option</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">main_menu_loop</span> <span class="o">=</span> <span class="kc">False</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">is_playing_game</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="n">pygame</span><span class="o">.</span><span class="n">K_ESCAPE</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">is_playing_game</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">main_menu_loop</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">pygame</span><span class="o">.</span><span class="n">QUIT</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">is_playing_game</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">main_menu_loop</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="n">screen</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">background_color</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">texts</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">option</span><span class="p">:</span>
+                    <span class="n">color</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">155</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">color</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
+                <span class="n">font_size</span> <span class="o">=</span> <span class="mi">60</span>
+                <span class="n">new_text</span> <span class="o">=</span> <span class="n">create_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="p">,</span> <span class="n">font_size</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span>
+                <span class="n">x_pos</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_x</span> <span class="o">-</span> <span class="n">new_text</span><span class="o">.</span><span class="n">get_width</span><span class="p">())</span> <span class="o">//</span> <span class="mi">2</span>
+                <span class="n">y_pos</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_y</span> <span class="o">-</span> <span class="n">new_text</span><span class="o">.</span><span class="n">get_height</span><span class="p">())</span> <span class="o">//</span> <span class="p">(</span><span class="mi">2</span> <span class="o">+</span> <span class="n">text_len</span><span class="p">)</span> <span class="o">+</span> <span class="n">font_size</span>
+                <span class="n">screen</span><span class="o">.</span><span class="n">blit</span><span class="p">(</span><span class="n">new_text</span><span class="p">,</span> <span class="p">(</span><span class="n">x_pos</span><span class="p">,</span> <span class="n">y_pos</span><span class="p">))</span>
+            <span class="n">pygame</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">flip</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Game.about_menu"><a class="viewcode-back" href="../game.html#game.Game.about_menu">[docs]</a>    <span class="k">def</span> <span class="nf">about_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">screen</span><span class="p">:</span> <span class="n">pygame</span><span class="o">.</span><span class="n">Surface</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Menu option showing authors of this marvelous game</span>
+<span class="sd">        :param screen: about menu will be shown on specified screen</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">is_about</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">authors</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Kornel Raczak&#39;</span><span class="p">,</span> <span class="s1">&#39;Pawel Gorecki&#39;</span><span class="p">,</span> <span class="s1">&#39;Lukasz Polakiewicz&#39;</span><span class="p">]</span>
+        <span class="n">shuffle</span><span class="p">(</span><span class="n">authors</span><span class="p">)</span>
+        <span class="n">texts</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Authors:&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">authors</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;Press any key to escape...&#39;</span><span class="p">]</span>
+        <span class="n">text_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">texts</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">is_about</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clock</span><span class="o">.</span><span class="n">tick</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tick_time</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">pygame</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">pygame</span><span class="o">.</span><span class="n">QUIT</span><span class="p">:</span>
+                    <span class="n">is_about</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">main_menu_loop</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">pygame</span><span class="o">.</span><span class="n">KEYDOWN</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="ow">in</span> <span class="p">(</span><span class="n">pygame</span><span class="o">.</span><span class="n">K_SPACE</span><span class="p">,</span> <span class="n">pygame</span><span class="o">.</span><span class="n">K_RETURN</span><span class="p">,</span> <span class="n">pygame</span><span class="o">.</span><span class="n">K_ESCAPE</span><span class="p">):</span>
+                        <span class="n">is_about</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="n">screen</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">background_color</span><span class="p">)</span>
+            <span class="n">about_colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">color</span> <span class="k">for</span> <span class="n">color</span> <span class="ow">in</span> <span class="n">colors</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">color</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">background_color</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">text</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">texts</span><span class="p">,</span> <span class="n">about_colors</span><span class="p">)):</span>
+                <span class="n">font_size</span> <span class="o">=</span> <span class="mi">60</span>
+                <span class="k">if</span> <span class="n">text</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">texts</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="n">font_size</span> <span class="o">=</span> <span class="mi">30</span>
+                <span class="n">new_text</span> <span class="o">=</span> <span class="n">create_text</span><span class="p">(</span><span class="n">text</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="p">,</span> <span class="n">font_size</span><span class="p">,</span> <span class="n">text</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">x_pos</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_x</span> <span class="o">-</span> <span class="n">new_text</span><span class="o">.</span><span class="n">get_width</span><span class="p">())</span> <span class="o">//</span> <span class="mi">2</span>
+                <span class="n">y_pos</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_y</span> <span class="o">-</span> <span class="n">new_text</span><span class="o">.</span><span class="n">get_height</span><span class="p">())</span> <span class="o">//</span> <span class="p">(</span><span class="mi">2</span> <span class="o">+</span> <span class="n">text_len</span><span class="p">)</span> <span class="o">+</span> <span class="n">font_size</span>
+                <span class="n">screen</span><span class="o">.</span><span class="n">blit</span><span class="p">(</span><span class="n">new_text</span><span class="p">,</span> <span class="p">(</span><span class="n">x_pos</span><span class="p">,</span> <span class="n">y_pos</span><span class="p">))</span>
+            <span class="n">pygame</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">flip</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Game.change_wind"><a class="viewcode-back" href="../game.html#game.Game.change_wind">[docs]</a>    <span class="k">def</span> <span class="nf">change_wind</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method responsible for changing the force of wind&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">game_option</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">game_option</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wind</span> <span class="o">+=</span> <span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">/</span> <span class="mi">700</span></div>
+
+<div class="viewcode-block" id="Game.set_wind_on_start"><a class="viewcode-back" href="../game.html#game.Game.set_wind_on_start">[docs]</a>    <span class="k">def</span> <span class="nf">set_wind_on_start</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Initializes wind force at the beginning of a game&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">game_option</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">wind</span> <span class="o">=</span> <span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">100</span></div>
+
+<div class="viewcode-block" id="Game.set_maximum_number_of_meteors"><a class="viewcode-back" href="../game.html#game.Game.set_maximum_number_of_meteors">[docs]</a>    <span class="k">def</span> <span class="nf">set_maximum_number_of_meteors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Sets max number of meteors shown on display &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maximum_number_of_meteors</span> <span class="o">=</span> <span class="mi">12</span> <span class="o">+</span> <span class="mi">4</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">game_option</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Game.option_menu"><a class="viewcode-back" href="../game.html#game.Game.option_menu">[docs]</a>    <span class="k">def</span> <span class="nf">option_menu</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">screen</span><span class="p">:</span> <span class="n">pygame</span><span class="o">.</span><span class="n">Surface</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates option menu, where user can configure game play</span>
+<span class="sd">        :param screen: Screen on which main menu should be displayed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">not_chosen</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">option_meteors</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Meteors: Easy&quot;</span><span class="p">,</span> <span class="s2">&quot;Meteors: Medium&quot;</span><span class="p">,</span> <span class="s2">&quot;Meteors: Hard&quot;</span><span class="p">,</span> <span class="s2">&quot;Meteors: Impossible&quot;</span><span class="p">]</span>
+        <span class="n">options1</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Music: Off&#39;</span><span class="p">,</span> <span class="s1">&#39;Music: On&#39;</span><span class="p">]</span>
+        <span class="n">options2</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Wind: On&#39;</span><span class="p">,</span> <span class="s1">&#39;Wind: Off&#39;</span><span class="p">]</span>
+        <span class="n">options3</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Wind: Constant&#39;</span><span class="p">,</span> <span class="s1">&#39;Wind: Unstable&#39;</span><span class="p">]</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="p">[</span><span class="n">option_meteors</span><span class="p">,</span> <span class="n">options1</span><span class="p">,</span> <span class="n">options2</span><span class="p">,</span> <span class="n">options3</span><span class="p">]</span>
+        <span class="n">game_option_len</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+            <span class="n">game_option_len</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">option</span><span class="p">))</span>
+        <span class="n">option</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">text_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">options</span><span class="p">)</span>
+        <span class="k">while</span> <span class="n">not_chosen</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clock</span><span class="o">.</span><span class="n">tick</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tick_time</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">pygame</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">pygame</span><span class="o">.</span><span class="n">KEYDOWN</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="n">pygame</span><span class="o">.</span><span class="n">K_DOWN</span><span class="p">:</span>
+                        <span class="n">option</span> <span class="o">=</span> <span class="p">(</span><span class="n">option</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">text_len</span>
+                    <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="n">pygame</span><span class="o">.</span><span class="n">K_UP</span><span class="p">:</span>
+                        <span class="n">option</span> <span class="o">=</span> <span class="p">(</span><span class="n">option</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">text_len</span>
+                    <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="n">pygame</span><span class="o">.</span><span class="n">K_LEFT</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">game_option</span><span class="p">[</span><span class="n">option</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">game_option</span><span class="p">[</span><span class="n">option</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">game_option_len</span><span class="p">[</span><span class="n">option</span><span class="p">]</span>
+                    <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="n">pygame</span><span class="o">.</span><span class="n">K_RIGHT</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">game_option</span><span class="p">[</span><span class="n">option</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">game_option</span><span class="p">[</span><span class="n">option</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">game_option_len</span><span class="p">[</span><span class="n">option</span><span class="p">]</span>
+
+                    <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="n">pygame</span><span class="o">.</span><span class="n">K_ESCAPE</span><span class="p">:</span>
+                        <span class="n">not_chosen</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">pygame</span><span class="o">.</span><span class="n">QUIT</span><span class="p">:</span>
+                    <span class="n">not_chosen</span> <span class="o">=</span> <span class="kc">False</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">main_menu_loop</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="n">screen</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">background_color</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">opt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">options</span><span class="p">):</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">)</span>
+                <span class="n">font_size</span> <span class="o">=</span> <span class="mi">60</span>
+                <span class="n">what_to_write</span> <span class="o">=</span> <span class="n">opt</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">game_option</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">option</span><span class="p">:</span>
+                    <span class="n">color</span> <span class="o">=</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="n">new_text</span> <span class="o">=</span> <span class="n">create_text</span><span class="p">(</span><span class="n">what_to_write</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="p">,</span> <span class="n">font_size</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span>
+                <span class="n">x_pos</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_x</span> <span class="o">-</span> <span class="n">new_text</span><span class="o">.</span><span class="n">get_width</span><span class="p">())</span> <span class="o">//</span> <span class="mi">2</span>
+                <span class="n">y_pos</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_y</span> <span class="o">-</span> <span class="n">new_text</span><span class="o">.</span><span class="n">get_height</span><span class="p">())</span> <span class="o">//</span> <span class="p">(</span><span class="mi">2</span> <span class="o">+</span> <span class="n">text_len</span><span class="p">)</span> <span class="o">+</span> <span class="n">font_size</span>
+                <span class="n">screen</span><span class="o">.</span><span class="n">blit</span><span class="p">(</span><span class="n">new_text</span><span class="p">,</span> <span class="p">(</span><span class="n">x_pos</span><span class="p">,</span> <span class="n">y_pos</span><span class="p">))</span>
+            <span class="n">pygame</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">flip</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Game.show_speed"><a class="viewcode-back" href="../game.html#game.Game.show_speed">[docs]</a>    <span class="k">def</span> <span class="nf">show_speed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">screen</span><span class="p">:</span> <span class="n">pygame</span><span class="o">.</span><span class="n">Surface</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method responsible for showing vertical and horizontal speed of rocket, but also the speed of wind.</span>
+<span class="sd">        :param screen: Screen on which above speeds will be shown</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">lagrangian</span> <span class="o">=</span> <span class="mi">117</span> <span class="o">/</span> <span class="mi">17</span>
+        <span class="n">speed_x_val</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">acc</span><span class="o">.</span><span class="n">x</span> <span class="o">*</span> <span class="n">lagrangian</span><span class="p">))</span>
+        <span class="n">speed_y_val</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">acc</span><span class="o">.</span><span class="n">y</span> <span class="o">*</span> <span class="n">lagrangian</span><span class="p">))</span>
+        <span class="n">wind</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">wind</span> <span class="o">*</span> <span class="n">lagrangian</span><span class="p">))</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wind</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">wind_direction</span> <span class="o">=</span> <span class="s1">&#39; &lt;-&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">wind_direction</span> <span class="o">=</span> <span class="s1">&#39; -&gt;&#39;</span>
+        <span class="n">speed_x</span> <span class="o">=</span> <span class="n">create_text</span><span class="p">(</span><span class="s1">&#39;Horizontal:  </span><span class="si">{}</span><span class="s1"> m/h&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">speed_x_val</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">speed_y</span> <span class="o">=</span> <span class="n">create_text</span><span class="p">(</span><span class="s1">&#39;Vertical:  </span><span class="si">{}</span><span class="s1"> m/h&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">speed_y_val</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">speed_wind</span> <span class="o">=</span> <span class="n">create_text</span><span class="p">(</span><span class="s1">&#39;Wind:&#39;</span> <span class="o">+</span> <span class="n">wind_direction</span> <span class="o">+</span> <span class="s1">&#39; </span><span class="si">{}</span><span class="s1"> m/h&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="mi">10</span> <span class="o">*</span> <span class="n">wind</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">screen</span><span class="o">.</span><span class="n">blit</span><span class="p">(</span><span class="n">speed_x</span><span class="p">,</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">30</span><span class="p">))</span>
+        <span class="n">screen</span><span class="o">.</span><span class="n">blit</span><span class="p">(</span><span class="n">speed_y</span><span class="p">,</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+        <span class="n">screen</span><span class="o">.</span><span class="n">blit</span><span class="p">(</span><span class="n">speed_wind</span><span class="p">,</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">50</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Game.generate_surface"><a class="viewcode-back" href="../game.html#game.Game.generate_surface">[docs]</a>    <span class="k">def</span> <span class="nf">generate_surface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rng</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates planet surface along with landing platforms.</span>
+<span class="sd">        :param rng: Sets maximum height of planets&#39; surface</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">surface</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">max_y</span> <span class="o">-</span> <span class="mi">10</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_x</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">landing_site</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prepend</span> <span class="o">=</span> <span class="mi">100</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">site_size</span> <span class="o">=</span> <span class="mi">150</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">500</span><span class="p">):</span>
+            <span class="n">main_terrain</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">700</span><span class="p">,</span> <span class="mi">900</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">surface</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">generate_main_terrain</span><span class="p">(</span><span class="n">main_terrain</span><span class="p">,</span> <span class="n">rng</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">surface</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">prepend</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">surface</span> <span class="o">+=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">surface</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">site_size</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">landing_site</span> <span class="o">+=</span> <span class="p">[</span>
+                <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">prepend</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">site_size</span> <span class="o">+</span> <span class="n">main_terrain</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prepend</span> <span class="o">+</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">site_size</span> <span class="o">+</span> <span class="n">main_terrain</span><span class="p">]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_position</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prepend</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">site_size</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">rocket</span><span class="o">.</span><span class="n">width</span> <span class="o">//</span> <span class="mi">8</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">surface</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">surface</span><span class="p">[(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">prepend</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">site_size</span><span class="p">):]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cutscene</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Game.fill_surface"><a class="viewcode-back" href="../game.html#game.Game.fill_surface">[docs]</a>    <span class="k">def</span> <span class="nf">fill_surface</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">screen</span><span class="p">:</span> <span class="n">pygame</span><span class="o">.</span><span class="n">Surface</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Fills surface with colour.</span>
+<span class="sd">        :param screen: Screen on which surface is drawn</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_x</span><span class="p">,</span> <span class="mi">3</span><span class="p">):</span>
+            <span class="n">pygame</span><span class="o">.</span><span class="n">draw</span><span class="o">.</span><span class="n">line</span><span class="p">(</span><span class="n">screen</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span> <span class="o">//</span> <span class="mi">10</span> <span class="o">%</span> <span class="mi">256</span><span class="p">,</span> <span class="n">x</span> <span class="o">//</span> <span class="mi">40</span> <span class="o">%</span> <span class="mi">256</span><span class="p">,</span> <span class="p">(</span><span class="n">x</span> <span class="o">//</span> <span class="mi">20</span> <span class="o">+</span> <span class="mi">20</span><span class="p">)</span> <span class="o">%</span> <span class="mi">256</span><span class="p">),</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_y</span><span class="p">],</span>
+                             <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">surface</span><span class="p">[</span><span class="n">x</span><span class="p">]],</span> <span class="mi">5</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Game.cutscene"><a class="viewcode-back" href="../game.html#game.Game.cutscene">[docs]</a>    <span class="k">def</span> <span class="nf">cutscene</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Moves surface to the right to enable landing on yet another platform. &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">surface</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">surface</span><span class="p">[(</span><span class="bp">self</span><span class="o">.</span><span class="n">landing_site</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">prepend</span><span class="p">):]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">landing_site</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">landing_site</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span></div>
+
+<div class="viewcode-block" id="Game.generate_main_terrain"><a class="viewcode-back" href="../game.html#game.Game.generate_main_terrain">[docs]</a>    <span class="k">def</span> <span class="nf">generate_main_terrain</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">main_terrain</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">rng</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">start</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates curve of terrain in between two platforms.</span>
+<span class="sd">        :param main_terrain: length of terrain to be generated</span>
+<span class="sd">        :param rng: maximum height of terrain to be generated</span>
+<span class="sd">        :param start: heigt of platform preceeding generated piece of terrain</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">main_terrain</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">max_y</span> <span class="o">-</span> <span class="n">numpy</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">rng</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">20</span><span class="p">)]</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">interp1d</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s1">&#39;cubic&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="n">f</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">main_terrain</span><span class="p">)))</span></div>
+
+<div class="viewcode-block" id="Game.run"><a class="viewcode-back" href="../game.html#game.Game.run">[docs]</a>    <span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Main method of a Game class. It&#39;s responsible for initialization of pygame module and main_menu method. &quot;&quot;&quot;</span>
+        <span class="n">pygame</span><span class="o">.</span><span class="n">init</span><span class="p">()</span>
+        <span class="n">pygame</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">set_caption</span><span class="p">(</span><span class="s1">&#39;Mathematicians into space&#39;</span><span class="p">)</span>
+        <span class="n">path</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;icon.png&#39;</span>
+        <span class="n">icon</span> <span class="o">=</span> <span class="n">pygame</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+        <span class="n">icon</span><span class="o">.</span><span class="n">set_colorkey</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">pygame</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">set_icon</span><span class="p">(</span><span class="n">icon</span><span class="p">)</span>
+        <span class="n">screen</span> <span class="o">=</span> <span class="n">pygame</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">set_mode</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">max_x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_y</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">background</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">background</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">convert</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">main_menu</span><span class="p">(</span><span class="n">screen</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Game.reset_meteors"><a class="viewcode-back" href="../game.html#game.Game.reset_meteors">[docs]</a>    <span class="k">def</span> <span class="nf">reset_meteors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Clears space from meteors and adds some meteors on start&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">list_of_meteors</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">how_much_on_start</span> <span class="o">=</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">15</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">how_much_on_start</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">game_option</span><span class="p">[</span><span class="mi">0</span><span class="p">]]):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_meteor</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Game.reset_wind"><a class="viewcode-back" href="../game.html#game.Game.reset_wind">[docs]</a>    <span class="k">def</span> <span class="nf">reset_wind</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Resets wind &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">wind</span> <span class="o">=</span> <span class="mi">0</span></div>
+
+<div class="viewcode-block" id="Game.pause_game"><a class="viewcode-back" href="../game.html#game.Game.pause_game">[docs]</a>    <span class="k">def</span> <span class="nf">pause_game</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">screen</span><span class="p">:</span> <span class="n">pygame</span><span class="o">.</span><span class="n">Surface</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Pauses game, so that player can go for a drink</span>
+<span class="sd">        :param screen: Screen on which main menu should be displayed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">game_pause</span> <span class="o">=</span> <span class="n">create_text</span><span class="p">(</span><span class="s2">&quot;Game Pause&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="p">,</span> <span class="mi">90</span><span class="p">,</span> <span class="n">colors</span><span class="p">[</span><span class="s1">&#39;red&#39;</span><span class="p">])</span>
+        <span class="n">pause_menu</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">while</span> <span class="n">pause_menu</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">pygame</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">pygame</span><span class="o">.</span><span class="n">QUIT</span><span class="p">:</span>
+                    <span class="n">exit</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">pygame</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">get_pressed</span><span class="p">()[</span><span class="n">pygame</span><span class="o">.</span><span class="n">K_ESCAPE</span><span class="p">]:</span>
+                    <span class="n">pause_menu</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">show_text</span><span class="p">(</span><span class="n">screen</span><span class="p">,</span> <span class="n">game_pause</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)</span>
+            <span class="n">pygame</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">flip</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clock</span><span class="o">.</span><span class="n">tick</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Game.play_game"><a class="viewcode-back" href="../game.html#game.Game.play_game">[docs]</a>    <span class="k">def</span> <span class="nf">play_game</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">screen</span><span class="p">:</span> <span class="n">pygame</span><span class="o">.</span><span class="n">Surface</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Turns on window with game play itself. This method is responsible for all the fun you have!</span>
+<span class="sd">        :param screen: Screen on which main menu should be displayed</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_playing_game</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">generate_surface</span><span class="p">(</span><span class="mf">0.5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_y</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_stage</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_maximum_number_of_meteors</span><span class="p">()</span>
+
+        <span class="n">counting_texts</span> <span class="o">=</span> <span class="p">[</span><span class="n">create_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="p">,</span> <span class="mi">165</span><span class="p">,</span> <span class="n">colors</span><span class="p">[</span><span class="s1">&#39;red&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">text</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;3&#39;</span><span class="p">,</span> <span class="s1">&#39;2&#39;</span><span class="p">,</span> <span class="s1">&#39;1&#39;</span><span class="p">,</span> <span class="s1">&#39;Go!&#39;</span><span class="p">]]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">win_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_playing_game</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">pygame</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">pygame</span><span class="o">.</span><span class="n">QUIT</span><span class="p">:</span>
+                    <span class="n">exit</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">pygame</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">get_pressed</span><span class="p">()[</span><span class="n">pygame</span><span class="o">.</span><span class="n">K_ESCAPE</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">pause_game</span><span class="p">(</span><span class="n">screen</span><span class="p">)</span>
+            <span class="n">pressed</span> <span class="o">=</span> <span class="n">pygame</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">get_pressed</span><span class="p">()</span>
+            <span class="n">current_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prob_of_new_meteor</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_meteor</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">overload_meteors</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">change_wind</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">change_acc</span><span class="p">(</span><span class="n">pressed</span><span class="p">,</span> <span class="n">current_time</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">game_started</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_gravity</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">add_wind</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_air_resistance</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">change_rocket_position</span><span class="p">()</span>
+            <span class="n">screen</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">background_color</span><span class="p">)</span>
+            <span class="n">screen</span><span class="o">.</span><span class="n">blit</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">background</span><span class="o">.</span><span class="n">image</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">background</span><span class="o">.</span><span class="n">rect</span><span class="p">)</span>
+            <span class="n">pygame</span><span class="o">.</span><span class="n">draw</span><span class="o">.</span><span class="n">lines</span><span class="p">(</span><span class="n">screen</span><span class="p">,</span> <span class="n">colors</span><span class="p">[</span><span class="s1">&#39;white&#39;</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="p">[(</span><span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">surface</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_x</span><span class="p">)],</span> <span class="mi">10</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">fill_surface</span><span class="p">(</span><span class="n">screen</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">draw_meteors</span><span class="p">(</span><span class="n">screen</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">show_speed</span><span class="p">(</span><span class="n">screen</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">draw_rocket</span><span class="p">(</span><span class="n">screen</span><span class="p">,</span> <span class="n">current_time</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_game_status</span><span class="p">()</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_won</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">game_won</span><span class="p">(</span><span class="n">screen</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_lost</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">game_lost</span><span class="p">(</span><span class="n">screen</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">show_counting_down</span><span class="p">(</span><span class="n">counting_texts</span><span class="p">,</span> <span class="n">screen</span><span class="p">,</span> <span class="n">current_time</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clock</span><span class="o">.</span><span class="n">tick</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tick_time</span><span class="p">)</span>
+            <span class="n">pygame</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">flip</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Game.show_counting_down"><a class="viewcode-back" href="../game.html#game.Game.show_counting_down">[docs]</a>    <span class="k">def</span> <span class="nf">show_counting_down</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">counting_texts</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">pygame</span><span class="o">.</span><span class="n">Surface</span><span class="p">],</span> <span class="n">screen</span><span class="p">:</span> <span class="n">pygame</span><span class="o">.</span><span class="n">Surface</span><span class="p">,</span> <span class="n">current_time</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method displays counting down at the beginning of every challenge!</span>
+<span class="sd">        :param counting_texts: texts that should be displayed</span>
+<span class="sd">        :param screen: Screen on which counting should be displayed</span>
+<span class="sd">        :param current_time: current time</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">time_diff</span> <span class="o">=</span> <span class="n">current_time</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">win_time</span>
+        <span class="k">if</span> <span class="n">time_diff</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">count_down_time</span><span class="p">:</span>
+            <span class="n">text_num</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1.8</span> <span class="o">*</span> <span class="n">time_diff</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">show_text</span><span class="p">(</span><span class="n">screen</span><span class="p">,</span> <span class="n">counting_texts</span><span class="p">[</span><span class="n">text_num</span><span class="p">],</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Game.game_lost"><a class="viewcode-back" href="../game.html#game.Game.game_lost">[docs]</a>    <span class="k">def</span> <span class="nf">game_lost</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">screen</span><span class="p">:</span> <span class="n">pygame</span><span class="o">.</span><span class="n">Surface</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method is responsible for handling lost game</span>
+<span class="sd">        :param screen: main screen</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">game_option</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">pygame</span><span class="o">.</span><span class="n">mixer</span><span class="o">.</span><span class="n">Sound</span><span class="p">(</span><span class="s1">&#39;death.wav&#39;</span><span class="p">)</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">play</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">game_over</span><span class="p">(</span><span class="n">screen</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Game.prob_of_new_meteor"><a class="viewcode-back" href="../game.html#game.Game.prob_of_new_meteor">[docs]</a>    <span class="k">def</span> <span class="nf">prob_of_new_meteor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Generates new meteors with probability depending on option set in option menu &quot;&quot;&quot;</span>
+        <span class="n">probabilities</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.01</span><span class="p">,</span> <span class="mf">0.03</span><span class="p">,</span> <span class="mf">0.06</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">probabilities</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">game_option</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span></div>
+
+<div class="viewcode-block" id="Game.draw_meteors"><a class="viewcode-back" href="../game.html#game.Game.draw_meteors">[docs]</a>    <span class="k">def</span> <span class="nf">draw_meteors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">screen</span><span class="p">:</span> <span class="n">pygame</span><span class="o">.</span><span class="n">Surface</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method responsible for displaying meteors on the screen and for move of meteors</span>
+<span class="sd">        :param screen: main screen</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">meteor</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list_of_meteors</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">list_of_meteors</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">x</span> <span class="o">+=</span> <span class="n">meteor</span><span class="o">.</span><span class="n">x_acc</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">wind</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">list_of_meteors</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">y</span> <span class="o">+=</span> <span class="n">meteor</span><span class="o">.</span><span class="n">y_acc</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">list_of_meteors</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">rotation_counter</span> <span class="o">=</span> <span class="p">(</span><span class="n">meteor</span><span class="o">.</span><span class="n">rotation_counter</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">meteor</span><span class="o">.</span><span class="n">rotation_speed</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_of_meteors</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">rotation_counter</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">list_of_meteors</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">rotation</span> <span class="o">=</span> <span class="p">(</span><span class="n">meteor</span><span class="o">.</span><span class="n">rotation</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="mi">36</span>
+            <span class="n">scale_size</span> <span class="o">=</span> <span class="p">{</span><span class="mi">70</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">60</span><span class="p">:</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">50</span><span class="p">:</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="mi">40</span><span class="p">:</span> <span class="o">-</span><span class="mi">4</span><span class="p">,</span> <span class="mi">30</span><span class="p">:</span> <span class="o">-</span><span class="mi">5</span><span class="p">}</span>
+            <span class="n">image_meteor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sprites</span><span class="p">[</span><span class="n">scale_size</span><span class="p">[</span><span class="n">meteor</span><span class="o">.</span><span class="n">size</span><span class="p">]][</span><span class="n">meteor</span><span class="o">.</span><span class="n">rotation</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">meteor</span> <span class="o">=</span> <span class="n">pygame</span><span class="o">.</span><span class="n">Rect</span><span class="p">(</span><span class="n">meteor</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">meteor</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">image_meteor</span><span class="o">.</span><span class="n">get_width</span><span class="p">(),</span> <span class="n">image_meteor</span><span class="o">.</span><span class="n">get_height</span><span class="p">())</span>
+            <span class="n">screen</span><span class="o">.</span><span class="n">blit</span><span class="p">(</span><span class="n">image_meteor</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">meteor</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Game.overload_meteors"><a class="viewcode-back" href="../game.html#game.Game.overload_meteors">[docs]</a>    <span class="k">def</span> <span class="nf">overload_meteors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If meteor is out of the sight it deletes it</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">meteor</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_of_meteors</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">meteor</span><span class="o">.</span><span class="n">is_visible</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_y</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">list_of_meteors</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">meteor</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Game.add_meteor"><a class="viewcode-back" href="../game.html#game.Game.add_meteor">[docs]</a>    <span class="k">def</span> <span class="nf">add_meteor</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add new meteor to the list if it is possible</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list_of_meteors</span><span class="p">)</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">maximum_number_of_meteors</span><span class="p">:</span>
+            <span class="n">brzeg</span> <span class="o">=</span> <span class="mi">100</span>
+            <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.7</span><span class="p">:</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="o">-</span><span class="n">brzeg</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_x</span>
+                <span class="n">x_acc</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">-</span> <span class="mf">1.5</span>
+                <span class="n">y_acc</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mf">0.5</span><span class="p">:</span>
+                    <span class="n">y</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_y</span> <span class="o">/</span> <span class="mi">3</span>
+                    <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_x</span> <span class="o">+</span> <span class="n">brzeg</span>
+                    <span class="n">x_acc</span> <span class="o">=</span> <span class="o">-</span> <span class="n">r</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">-</span> <span class="mi">1</span>
+                    <span class="n">y_acc</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">-</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">y</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_y</span> <span class="o">/</span> <span class="mi">4</span>
+                    <span class="n">x</span> <span class="o">=</span> <span class="o">-</span><span class="n">brzeg</span>
+                    <span class="n">x_acc</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">+</span> <span class="mi">1</span>
+                    <span class="n">y_acc</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">-</span> <span class="mf">2.5</span>
+            <span class="n">rotation</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">rotation_speed</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+            <span class="n">rotation_counter</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">size</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">choice</span><span class="p">([</span><span class="mi">70</span><span class="p">,</span> <span class="mi">60</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">30</span><span class="p">])</span>
+            <span class="n">rotation_direction</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">choice</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+            <span class="n">meteor</span> <span class="o">=</span> <span class="n">Meteor</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">x_acc</span><span class="p">,</span> <span class="n">y_acc</span><span class="p">,</span> <span class="n">rotation</span><span class="p">,</span> <span class="n">rotation_counter</span><span class="p">,</span> <span class="n">rotation_speed</span><span class="p">,</span> <span class="n">rotation_direction</span><span class="p">,</span> <span class="n">size</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">list_of_meteors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">meteor</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Game.set_game_status"><a class="viewcode-back" href="../game.html#game.Game.set_game_status">[docs]</a>    <span class="k">def</span> <span class="nf">set_game_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method responsible for checking if game should end (because of win or lose) and setting appropriate flags</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">rocket</span><span class="o">.</span><span class="n">x</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_x</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">rocket</span><span class="o">.</span><span class="n">width</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_lost</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">elif</span> <span class="ow">not</span> <span class="mi">0</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">rocket</span><span class="o">.</span><span class="n">y</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_y</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">rocket</span><span class="o">.</span><span class="n">height</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_lost</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rocket</span><span class="o">.</span><span class="n">hit_box</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">y</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">surface</span><span class="p">[</span><span class="n">x</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">acc</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">acc</span><span class="o">.</span><span class="n">y</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">5</span> <span class="ow">and</span> \
+                        <span class="bp">self</span><span class="o">.</span><span class="n">landing_site</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">rocket</span><span class="o">.</span><span class="n">x</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">landing_site</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">is_won</span> <span class="o">=</span> <span class="kc">True</span>
+                    <span class="k">break</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">is_lost</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">break</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_meteor_collided</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Game.is_meteor_collided"><a class="viewcode-back" href="../game.html#game.Game.is_meteor_collided">[docs]</a>    <span class="k">def</span> <span class="nf">is_meteor_collided</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Check that is collision between rocket and any meteor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">meteor</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_of_meteors</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">rocket</span><span class="o">.</span><span class="n">hit_box</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">((</span><span class="n">meteor</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="n">meteor</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="o">-</span> <span class="n">x</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="p">((</span><span class="n">meteor</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span> <span class="n">meteor</span><span class="o">.</span><span class="n">size</span><span class="p">)</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">&lt;=</span> <span class="mf">0.81</span> <span class="o">*</span> <span class="n">meteor</span><span class="o">.</span><span class="n">size</span> <span class="o">**</span> <span class="mi">2</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">is_lost</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Game.change_rocket_position"><a class="viewcode-back" href="../game.html#game.Game.change_rocket_position">[docs]</a>    <span class="k">def</span> <span class="nf">change_rocket_position</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Method enables changing position of a rocket if not pause and game started &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">pause</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">game_started</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pos</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">acc</span></div>
+
+<div class="viewcode-block" id="Game.add_air_resistance"><a class="viewcode-back" href="../game.html#game.Game.add_air_resistance">[docs]</a>    <span class="k">def</span> <span class="nf">add_air_resistance</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Adds air resistance to the rocket acceleration &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">pause</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">acc</span> <span class="o">*=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">air_res</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">tick_time</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Game.add_gravity"><a class="viewcode-back" href="../game.html#game.Game.add_gravity">[docs]</a>    <span class="k">def</span> <span class="nf">add_gravity</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Adds gravity force to pull down the rocket &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">pause</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">acc</span><span class="o">.</span><span class="n">y</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gravity</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">tick_time</span></div>
+
+<div class="viewcode-block" id="Game.add_wind"><a class="viewcode-back" href="../game.html#game.Game.add_wind">[docs]</a>    <span class="k">def</span> <span class="nf">add_wind</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Adds wind force &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">acc</span><span class="o">.</span><span class="n">x</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">wind</span></div>
+
+<div class="viewcode-block" id="Game.change_acc"><a class="viewcode-back" href="../game.html#game.Game.change_acc">[docs]</a>    <span class="k">def</span> <span class="nf">change_acc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pressed</span><span class="p">:</span> <span class="n">List</span><span class="p">,</span> <span class="n">current_time</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method responsible for changing acceleration of a rocket depending on pressed keys. </span>
+<span class="sd">        :param pressed: pygame list with pressed keys</span>
+<span class="sd">        :param current_time: current time flag preserves move before game starts</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pause</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_force</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="n">pressed</span><span class="p">[</span><span class="n">pygame</span><span class="o">.</span><span class="n">K_UP</span><span class="p">]</span> <span class="ow">and</span> <span class="n">current_time</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">win_time</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">count_down_time</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">acc</span><span class="o">.</span><span class="n">y</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">move</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_force</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">game_started</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">game_started</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">acc</span><span class="o">.</span><span class="n">y</span> <span class="o">-=</span> <span class="mi">3</span>
+        <span class="k">if</span> <span class="n">pressed</span><span class="p">[</span><span class="n">pygame</span><span class="o">.</span><span class="n">K_DOWN</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">acc</span><span class="o">.</span><span class="n">y</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">acc</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">acc</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">move</span> <span class="o">//</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">pressed</span><span class="p">[</span><span class="n">pygame</span><span class="o">.</span><span class="n">K_LEFT</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">acc</span><span class="o">.</span><span class="n">y</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">acc</span><span class="o">.</span><span class="n">x</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">move</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="n">pressed</span><span class="p">[</span><span class="n">pygame</span><span class="o">.</span><span class="n">K_RIGHT</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">acc</span><span class="o">.</span><span class="n">y</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">acc</span><span class="o">.</span><span class="n">x</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">move</span> <span class="o">/</span> <span class="mi">2</span>
+        <span class="k">if</span> <span class="n">pressed</span><span class="p">[</span><span class="n">pygame</span><span class="o">.</span><span class="n">K_SPACE</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pause</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+<div class="viewcode-block" id="Game.show_text"><a class="viewcode-back" href="../game.html#game.Game.show_text">[docs]</a>    <span class="k">def</span> <span class="nf">show_text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">screen</span><span class="p">:</span> <span class="n">pygame</span><span class="o">.</span><span class="n">Surface</span><span class="p">,</span> <span class="n">text</span><span class="p">:</span> <span class="n">pygame</span><span class="o">.</span><span class="n">Surface</span><span class="p">,</span> <span class="n">x_ratio</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">y_ratio</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method responsible for showing text on screen. </span>
+<span class="sd">        :param screen: main display</span>
+<span class="sd">        :param text: text we want to show</span>
+<span class="sd">        :param x_ratio: x / max_x, ratio where should middle of a text appear according to x axis</span>
+<span class="sd">        :param y_ratio: y / max_y, ratio where should middle of a text appear according to y axis</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">x_pos</span> <span class="o">=</span> <span class="n">x_ratio</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_x</span> <span class="o">-</span> <span class="n">text</span><span class="o">.</span><span class="n">get_width</span><span class="p">())</span>
+        <span class="n">y_pos</span> <span class="o">=</span> <span class="n">y_ratio</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_y</span> <span class="o">-</span> <span class="n">text</span><span class="o">.</span><span class="n">get_height</span><span class="p">())</span>
+        <span class="n">screen</span><span class="o">.</span><span class="n">blit</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="p">(</span><span class="n">x_pos</span><span class="p">,</span> <span class="n">y_pos</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="Game.game_over"><a class="viewcode-back" href="../game.html#game.Game.game_over">[docs]</a>    <span class="k">def</span> <span class="nf">game_over</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">screen</span><span class="p">:</span> <span class="n">pygame</span><span class="o">.</span><span class="n">Surface</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Menu which will be shown after losing the game.</span>
+<span class="sd">        :param screen: main display </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">game_over_text</span> <span class="o">=</span> <span class="n">create_text</span><span class="p">(</span><span class="s2">&quot;Game Over&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="p">,</span> <span class="mi">110</span><span class="p">,</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">continue_text</span> <span class="o">=</span> <span class="n">create_text</span><span class="p">(</span><span class="s2">&quot;Press space to restart game&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="p">,</span> <span class="mi">35</span><span class="p">,</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">back_to_menu</span> <span class="o">=</span> <span class="n">create_text</span><span class="p">(</span><span class="s2">&quot;Press escape to back to menu&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">font</span><span class="p">,</span> <span class="mi">35</span><span class="p">,</span> <span class="p">(</span><span class="mi">255</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_text</span><span class="p">(</span><span class="n">screen</span><span class="p">,</span> <span class="n">game_over_text</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_text</span><span class="p">(</span><span class="n">screen</span><span class="p">,</span> <span class="n">continue_text</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">4</span> <span class="o">/</span> <span class="mi">11</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_text</span><span class="p">(</span><span class="n">screen</span><span class="p">,</span> <span class="n">back_to_menu</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span> <span class="o">/</span> <span class="mi">11</span><span class="p">)</span>
+        <span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_lost</span><span class="p">:</span>
+            <span class="n">pygame</span><span class="o">.</span><span class="n">display</span><span class="o">.</span><span class="n">flip</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">event</span> <span class="ow">in</span> <span class="n">pygame</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">get</span><span class="p">():</span>
+                <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">pygame</span><span class="o">.</span><span class="n">QUIT</span><span class="p">:</span>
+                    <span class="n">exit</span><span class="p">()</span>
+                <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">type</span> <span class="o">==</span> <span class="n">pygame</span><span class="o">.</span><span class="n">KEYDOWN</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="n">pygame</span><span class="o">.</span><span class="n">K_SPACE</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">reset_stage</span><span class="p">()</span>
+                    <span class="k">elif</span> <span class="n">event</span><span class="o">.</span><span class="n">key</span> <span class="o">==</span> <span class="n">pygame</span><span class="o">.</span><span class="n">K_ESCAPE</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">is_lost</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">is_playing_game</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">game_started</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">clock</span><span class="o">.</span><span class="n">tick</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tick_time</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Game.reset_stage"><a class="viewcode-back" href="../game.html#game.Game.reset_stage">[docs]</a>    <span class="k">def</span> <span class="nf">reset_stage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Resets settings of current game &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">init_pos</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_acc</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_meteors</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">game_started</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_lost</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_won</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_wind</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_wind_on_start</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">win_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Game.game_won"><a class="viewcode-back" href="../game.html#game.Game.game_won">[docs]</a>    <span class="k">def</span> <span class="nf">game_won</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">screen</span><span class="p">:</span> <span class="n">pygame</span><span class="o">.</span><span class="n">Surface</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Planned behaviour after landing on landing site</span>
+<span class="sd">        :param screen: main display </span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">game_option</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+            <span class="n">s</span> <span class="o">=</span> <span class="n">pygame</span><span class="o">.</span><span class="n">mixer</span><span class="o">.</span><span class="n">Sound</span><span class="p">(</span><span class="s1">&#39;victory.wav&#39;</span><span class="p">)</span>
+            <span class="n">s</span><span class="o">.</span><span class="n">play</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cutscene</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reset_stage</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Game.draw_rocket"><a class="viewcode-back" href="../game.html#game.Game.draw_rocket">[docs]</a>    <span class="k">def</span> <span class="nf">draw_rocket</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">screen</span><span class="p">:</span> <span class="n">pygame</span><span class="o">.</span><span class="n">Surface</span><span class="p">,</span> <span class="n">current_time</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Method responsible for drawing rocket in the right position</span>
+<span class="sd">        :param screen: main display</span>
+<span class="sd">        :param current_time: preserves image change before game start</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rocket</span><span class="o">.</span><span class="n">get_image</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">acc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_force</span><span class="p">,</span> <span class="p">(</span><span class="n">current_time</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">win_time</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rocket</span><span class="o">.</span><span class="n">set_pos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rocket</span><span class="o">.</span><span class="n">set_width</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">get_width</span><span class="p">())</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rocket</span><span class="o">.</span><span class="n">set_height</span><span class="p">(</span><span class="n">image</span><span class="o">.</span><span class="n">get_height</span><span class="p">())</span>
+        <span class="n">screen</span><span class="o">.</span><span class="n">blit</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rocket</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">Rocket Game</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../background.html">background module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../game.html">game module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../main.html">main module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../meteor.html">meteor module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../rocket.html">rocket module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../text_styler.html">text_styler module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, raczak, polakiewicz, gorecki.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,7 @@
+text\_styler module
+===================
+
+.. automodule:: text_styler
+    :members:
+    :undoc-members:
+    :show-inheritance:

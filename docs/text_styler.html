@@ -1,0 +1,144 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>text_styler module &#8212; Rocket Game 29.01.2019 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="rocket module" href="rocket.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-text_styler">
+<span id="text-styler-module"></span><h1>text_styler module<a class="headerlink" href="#module-text_styler" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="text_styler.create_text">
+<code class="descclassname">text_styler.</code><code class="descname">create_text</code><span class="sig-paren">(</span><em>text: str, fonts: list, size: int, color: Tuple[int, int, int]</em><span class="sig-paren">)</span> &#x2192; pygame.Surface<a class="reference internal" href="_modules/text_styler.html#create_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#text_styler.create_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method responsible for rendering image from pygame font surface
+:param text: text we want to show
+:param fonts: fonts we want to use (first available will be chosen)
+:param size: size of text
+:param color: color of text
+:return: image of a rendered pygame font</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="text_styler.get_font">
+<code class="descclassname">text_styler.</code><code class="descname">get_font</code><span class="sig-paren">(</span><em>font_preferences: List[str], size: int</em><span class="sig-paren">)</span> &#x2192; pygame.font.Font<a class="reference internal" href="_modules/text_styler.html#get_font"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#text_styler.get_font" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method responsible for creating (if not already cached) and getting font surface
+:param font_preferences: font name
+:param size: font size
+:return: pygame surface representing font</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="text_styler.make_font">
+<code class="descclassname">text_styler.</code><code class="descname">make_font</code><span class="sig-paren">(</span><em>fonts: list</em>, <em>size: int</em><span class="sig-paren">)</span> &#x2192; pygame.font.Font<a class="reference internal" href="_modules/text_styler.html#make_font"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#text_styler.make_font" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method responsible for making font of certain size. You can specify name of font, then it will
+be searched in system fonts. If None then default font will be returned
+:param fonts: list of fonts
+:param size: size
+:return: pygame surface representing font</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Rocket Game</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="background.html">background module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="game.html">game module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main.html">main module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="meteor.html">meteor module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rocket.html">rocket module</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">text_styler module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="rocket.html" title="previous chapter">rocket module</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, raczak, polakiewicz, gorecki.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/text_styler.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

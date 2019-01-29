@@ -1,0 +1,171 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>rocket module &#8212; Rocket Game 29.01.2019 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="text_styler module" href="text_styler.html" />
+    <link rel="prev" title="meteor module" href="meteor.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-rocket">
+<span id="rocket-module"></span><h1>rocket module<a class="headerlink" href="#module-rocket" title="Permalink to this headline">¶</a></h1>
+<p>Module provides Rocket class which is representing Rocket in game</p>
+<dl class="class">
+<dt id="rocket.Rocket">
+<em class="property">class </em><code class="descclassname">rocket.</code><code class="descname">Rocket</code><span class="sig-paren">(</span><em>x: int</em>, <em>y: int</em>, <em>width: int</em>, <em>height: int</em>, <em>acc_sprites_folder: str</em>, <em>no_acc_sprites_folder: str</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rocket.html#Rocket"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rocket.Rocket" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pygame.Rect</span></code></p>
+<p>Rocket class, based on pygame.Rect. Possible customization is with size and graphics look</p>
+<dl class="method">
+<dt id="rocket.Rocket.get_image">
+<code class="descname">get_image</code><span class="sig-paren">(</span><em>acc: pygame.math.Vector2</em>, <em>force: bool</em>, <em>unlocked: bool</em><span class="sig-paren">)</span> &#x2192; &lt;module 'pygame.image' from 'c:\\python34\\lib\\site-packages\\pygame\\image.pyd'&gt;<a class="reference internal" href="_modules/rocket.html#Rocket.get_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rocket.Rocket.get_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns image of a rocket corresponding to it’s speed in vertical and horizontal direction.
+Also it looks at if player holds Up Arrow button (force) and if the game already started (unlocked)
+:param acc: vector of acceleration
+:param force: if player presses up arrow
+:param unlocked: if game already started
+:return: image of a rocket</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="rocket.Rocket.set_height">
+<code class="descname">set_height</code><span class="sig-paren">(</span><em>height: int</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rocket.html#Rocket.set_height"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rocket.Rocket.set_height" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets height of a rocket</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="rocket.Rocket.set_hit_box">
+<code class="descname">set_hit_box</code><span class="sig-paren">(</span><em>sprite_num: int</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rocket.html#Rocket.set_hit_box"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rocket.Rocket.set_hit_box" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method calculates current hit box based on sprite currently drawn
+:param sprite_num: sprite number</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="rocket.Rocket.set_pos">
+<code class="descname">set_pos</code><span class="sig-paren">(</span><em>x: int</em>, <em>y: int</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rocket.html#Rocket.set_pos"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rocket.Rocket.set_pos" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets position of a rocket
+:param x:
+:param y:
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="rocket.Rocket.set_width">
+<code class="descname">set_width</code><span class="sig-paren">(</span><em>width: int</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/rocket.html#Rocket.set_width"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rocket.Rocket.set_width" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets width of a rocket</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="rocket.load_sprites">
+<code class="descclassname">rocket.</code><code class="descname">load_sprites</code><span class="sig-paren">(</span><em>folder_path: str</em><span class="sig-paren">)</span> &#x2192; List[pygame.Surface]<a class="reference internal" href="_modules/rocket.html#load_sprites"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rocket.load_sprites" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method loads sprites from folder_path
+:param folder_path: path to folder containing rocket sprites
+:return: list of rocket sprites</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Rocket Game</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="background.html">background module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="game.html">game module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main.html">main module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="meteor.html">meteor module</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">rocket module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="text_styler.html">text_styler module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="meteor.html" title="previous chapter">meteor module</a></li>
+      <li>Next: <a href="text_styler.html" title="next chapter">text_styler module</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, raczak, polakiewicz, gorecki.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/rocket.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>

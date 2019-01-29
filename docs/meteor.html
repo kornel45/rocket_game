@@ -1,0 +1,156 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>meteor module &#8212; Rocket Game 29.01.2019 documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="rocket module" href="rocket.html" />
+    <link rel="prev" title="main module" href="main.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="module-meteor">
+<span id="meteor-module"></span><h1>meteor module<a class="headerlink" href="#module-meteor" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="meteor.Meteor">
+<em class="property">class </em><code class="descclassname">meteor.</code><code class="descname">Meteor</code><span class="sig-paren">(</span><em>x: int</em>, <em>y: int</em>, <em>x_acc: int</em>, <em>y_acc: int</em>, <em>rotation: int</em>, <em>rotation_counter: int</em>, <em>rotation_speed: int</em>, <em>rotation_direction: int</em>, <em>size: int</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/meteor.html#Meteor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#meteor.Meteor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class represents meteors.</p>
+<dl class="method">
+<dt id="meteor.Meteor.is_visible">
+<code class="descname">is_visible</code><span class="sig-paren">(</span><em>max_x: int</em>, <em>max_y: int</em><span class="sig-paren">)</span> &#x2192; bool<a class="reference internal" href="_modules/meteor.html#Meteor.is_visible"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#meteor.Meteor.is_visible" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if meteor is in on the screen
+:param max_x: size of the x axis of screen
+:param max_y: size of the y axis of screen
+:return: is meteor visible or not</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="meteor.load_all_sprites_of_meteors">
+<code class="descclassname">meteor.</code><code class="descname">load_all_sprites_of_meteors</code><span class="sig-paren">(</span><em>folder_path: str</em><span class="sig-paren">)</span> &#x2192; List[List[pygame.Surface]]<a class="reference internal" href="_modules/meteor.html#load_all_sprites_of_meteors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#meteor.load_all_sprites_of_meteors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load sprites of meteors and scales it.
+:return list of list, where each list contains scaled images</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="meteor.load_first_sprites_meteors">
+<code class="descclassname">meteor.</code><code class="descname">load_first_sprites_meteors</code><span class="sig-paren">(</span><em>folder_path: str</em><span class="sig-paren">)</span> &#x2192; List[pygame.Surface]<a class="reference internal" href="_modules/meteor.html#load_first_sprites_meteors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#meteor.load_first_sprites_meteors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load sprites of meteors
+:param folder_path: folder to sprites
+:return list of images</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="meteor.scaling">
+<code class="descclassname">meteor.</code><code class="descname">scaling</code><span class="sig-paren">(</span><em>sprites: List[pygame.Surface], to_size: int</em><span class="sig-paren">)</span> &#x2192; List[pygame.Surface]<a class="reference internal" href="_modules/meteor.html#scaling"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#meteor.scaling" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scales images
+:param sprites: what it is scaling
+:param to_size: size of scaling in pixels
+:return: list of scaled images</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Rocket Game</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="background.html">background module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="game.html">game module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="main.html">main module</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">meteor module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="rocket.html">rocket module</a></li>
+<li class="toctree-l1"><a class="reference internal" href="text_styler.html">text_styler module</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="main.html" title="previous chapter">main module</a></li>
+      <li>Next: <a href="rocket.html" title="next chapter">rocket module</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2019, raczak, polakiewicz, gorecki.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/meteor.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
