@@ -4,6 +4,9 @@ Module provides functionality of creating text accepted by pygame blit method
 """
 import pygame
 
+_cached_fonts = {}
+_cached_text = {}
+
 
 def make_font(fonts, size):
     """
@@ -24,9 +27,6 @@ def make_font(fonts, size):
     return pygame.font.Font(None, size)
 
 
-_cached_fonts = {}
-
-
 def get_font(font, size):
     """
     Method responsible for creating (if not already cached) and getting font surface
@@ -42,9 +42,6 @@ def get_font(font, size):
         font = make_font(font, size)
         _cached_fonts[key] = font
     return font
-
-
-_cached_text = {}
 
 
 def create_text(text, fonts, size, color):
@@ -69,5 +66,3 @@ def create_text(text, fonts, size, color):
         image = font.render(text, True, color)
         _cached_text[key] = image
     return image
-
-
