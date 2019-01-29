@@ -66,7 +66,7 @@ class Game:
         """
         Method used to initialize rocket position
         """
-        self.pos = Vector2(self.start_position, self.surface[self.start_position] - 65)
+        self.pos = Vector2(self.start_position, self.surface[self.start_position] - 67)
         self.rocket.x, self.rocket.y = self.pos
 
     def reset_acc(self):
@@ -236,6 +236,10 @@ class Game:
         screen.blit(speed_wind, (10, 50))
 
     def generate_surface(self, rng):
+        """
+        Generates planet surface along with landing platforms.
+        :param rng: Sets maximum height of planets' surface
+        """
         self.surface = [self.max_y - 10] * self.max_x
         self.landing_site = []
         self.prepend = 100
@@ -251,15 +255,26 @@ class Game:
         self.cutscene()
 
     def fill_surface(self, screen):
+        """
+        Fills surface with colour.
+        :param screen: Screen on which surface is drawn
+        """
         for x in range(0, self.max_x, 3):
             pygame.draw.line(screen, (x // 10 % 256, x // 40 % 256, (x // 20 + 20) % 256), [x, self.max_y],
                              [x, self.surface[x]], 5)
 
     def cutscene(self):
+        """ Moves surface to the right to enable landing on yet another platform. """
         self.surface = self.surface[(self.landing_site[0][0] - self.prepend):]
         self.landing_site = self.landing_site[1:]
 
     def generate_main_terrain(self, main_terrain, rng, start):
+        """
+        Generates curve of terrain in between two platforms.
+        :param main_terrain: length of terrain to be generated
+        :param rng: maximum height of terrain to be generated
+        :param start: heigt of platform preceeding generated piece of terrain
+        """
         x = numpy.linspace(0, main_terrain, 20)
         y = [self.max_y - numpy.random.randint(10, rng) for i in range(20)]
         f = interp1d(x, y, kind='cubic')
@@ -395,7 +410,7 @@ class Game:
 
     def overload_meteors(self):
         """
-        If meteor is out of the sight it delays it
+        If meteor is out of the sight it deletes it
         """
         for meteor in self.list_of_meteors:
             if not meteor.is_visible(self.max_x, self.max_y):
@@ -575,3 +590,4 @@ class Game:
         self.rocket.set_width(image.get_width())
         self.rocket.set_height(image.get_height())
         screen.blit(image, self.rocket)
+        #pygame.draw.lines(screen, 255, 1, [(x, y) for x,y in self.rocket.hit_box], 10)
