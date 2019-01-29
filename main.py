@@ -3,7 +3,7 @@ import pygame
 
 from background import Background
 from game import Game
-from meteor import load_sprites_meteors, sprites_of_meteor
+from meteor import load_all_sprites_of_meteors
 from rocket import Rocket
 
 x = 500
