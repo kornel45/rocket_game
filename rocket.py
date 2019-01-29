@@ -26,10 +26,13 @@ class Rocket(pygame.Rect):
             return self.no_acc_sprites[sprite_num]
 
     def set_hit_box(self, sprite_num):
-        self.hit_box = [(int(
-            self.x + self.width // 2 + math.cos((90 - sprite_num + i * 45) * math.pi / 180) * 15), int(
-            self.y + self.height // 2 + math.sin((90 - sprite_num + i * 45) * math.pi / 180) * 35)) for i
-            in range(8)]
+        self.hit_box = [(1,1) for i in range(8)]
+        h=[(self.x + self.width // 2, self.y + self.height // 2) for i in range(8)]
+        h2=[(math.cos((90 + i * 45) * math.pi / 180) * 15, math.sin((90 + i * 45) * math.pi / 180) * 35) for i in range(8)]
+        a = - sprite_num / 10 + 55 * math.pi / 180
+        for i in range(8):
+            x, y = h2[i][0:2]
+            self.hit_box[i] = int(y*math.sin(a) + x*math.cos(a) + h[i][0]), int(y*math.cos(a) - x*math.sin(a) + h[i][1])
 
     def set_pos(self, x, y):
         self.x = x
