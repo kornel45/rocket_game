@@ -19,7 +19,7 @@ class Meteor:
         return True
 
 
-def load_sprites_meteors(folder_path):
+def load_first_sprites_meteors(folder_path):
     meteory = []
     rozmiary = [70]
     pozycje = [i for i in range(36)]
@@ -33,10 +33,10 @@ def load_sprites_meteors(folder_path):
 def scaling(sprites, to_size):
     return [pygame.transform.scale(picture, (to_size, to_size)) for picture in sprites]
 
-
-meteors70 = load_sprites_meteors(r'meteors')
-meteors60 = scaling(meteors70, 120)
-meteors50 = scaling(meteors70, 100)
-meteors40 = scaling(meteors70, 80)
-meteors30 = scaling(meteors70, 60)
-sprites_of_meteor = [meteors30, meteors40, meteors50, meteors60, meteors70]
+def load_all_sprites_of_meteors(folder_path):
+    meteors70 = load_first_sprites_meteors(folder_path)
+    meteors60 = scaling(meteors70, 120)
+    meteors50 = scaling(meteors70, 100)
+    meteors40 = scaling(meteors70, 80)
+    meteors30 = scaling(meteors70, 60)
+    return [meteors30, meteors40, meteors50, meteors60, meteors70]
