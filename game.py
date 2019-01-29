@@ -274,6 +274,7 @@ class Game:
         icon.set_colorkey((0, 255, 0))
         pygame.display.set_icon(icon)
         screen = pygame.display.set_mode((self.max_x, self.max_y))
+        self.background.image = self.background.image.convert()
         self.main_menu(screen)
 
     def reset_meteors(self):
@@ -359,7 +360,7 @@ class Game:
         """
         if time_ - self.win_time <= 4:
             text_num = int(time_ - self.win_time)
-            self.show_text(screen, counting_texts[text_num], 1 / 2, 1 / 2)
+            self.show_text(screen, counting_texts[text_num-1], 1 / 2, 1 / 2)
 
     def game_lost(self, screen: pygame.display):
         """
