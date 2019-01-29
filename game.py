@@ -376,8 +376,9 @@ class Game:
         :param screen: Screen on which counting should be displayed
         :param current_time: current time
         """
-        if current_time - self.win_time <= self.count_down_time:
-            text_num = int(1.8 * (current_time - self.win_time))
+        time_diff = current_time - self.win_time
+        if time_diff <= self.count_down_time:
+            text_num = int(1.8 * time_diff)
             self.show_text(screen, counting_texts[text_num], 1 / 2, 1 / 2)
 
     def game_lost(self, screen: pygame.Surface):
