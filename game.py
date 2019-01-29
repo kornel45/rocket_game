@@ -344,7 +344,7 @@ class Game:
             self.set_game_status()
             if self.is_won:
                 self.game_won(screen)
-            if self.is_lost:
+            elif self.is_lost:
                 self.game_lost(screen)
             self.show_counting_down(counting_texts, screen, time_)
             self.clock.tick(self.tick_time)
@@ -547,6 +547,7 @@ class Game:
         self.reset_meteors()
         self.game_started = False
         self.is_lost = False
+        self.is_won = False
         self.reset_wind()
         self.set_wind_on_start()
         self.win_time = time.time()
@@ -561,7 +562,6 @@ class Game:
             s.play()
         self.cutscene()
         self.reset_stage()
-        self.is_won = False
 
     def draw_rocket(self, screen: pygame.display, time_: float):
         """
