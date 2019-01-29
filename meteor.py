@@ -13,7 +13,6 @@ class Meteor:
         self.rotation_direction = rotation_direction
         self.size = size
 
-
     def is_visible(self, max_x, max_y):
         if self.x < - 2 * self.size or self.x > 1.2 * max_x or self.y < -2 * self.size or self.y > 1.2 * max_y:
             return False
@@ -30,8 +29,10 @@ def load_sprites_meteors(folder_path):
             meteory.append(folder_path + nazwa)
     return [pygame.image.load(x) for x in meteory]
 
+
 def scaling(sprites, to_size):
     return [pygame.transform.scale(picture, (to_size, to_size)) for picture in sprites]
+
 
 meteors70 = load_sprites_meteors(r'meteors')
 meteors60 = scaling(meteors70, 120)
