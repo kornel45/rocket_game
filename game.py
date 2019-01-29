@@ -200,7 +200,7 @@ class Game:
                         not_chosen = False
                 elif event.type == pygame.QUIT:
                     not_chosen = False
-                    self.main_menu_loop
+                    self.main_menu_loop = False
 
             screen.fill(self.background_color)
             for i, opt in enumerate(options):
